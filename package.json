@@ -1,0 +1,16 @@
+{
+  "name": "en-basics",
+  "version": "0.1.0",
+  "description": "A very simple app engine plugin",
+  "main": "gulpfile.js",
+  "author": "Mathew Henson",
+  "license": "MIT",
+  "devDependencies": {
+    "gulp": "~3.9.1",
+    "gulp-concat": "~2.6.0",
+    "gulp-uglify": "~1.5.2",
+    "gulp-typescript": "~2.11.0",
+    "gulp-sass": "~2.2.0",
+    "gulp-filter": "~3.0.1"
+  }
+}
