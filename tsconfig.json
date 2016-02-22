@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "amd",
+    "removeComments": false,
+    "noEmitOnError": true,
+    "declaration": true,
+    "sourceMap": false,
+    "preserveConstEnums": true,
+    "target": "es5"
+  },
+  "files": [
+    "./definitions/es6-promise.d.ts",
+    "./definitions/FileUploader.d.ts",
+    "./definitions/ExportToken.d.ts",
+    "./definitions/webinate-users.d.ts",
+    "./definitions/modepress-api.d.ts",
+    "./definitions/definitions.d.ts",
+    "./definitions/app-engine.d.ts"
+  ]
+}
