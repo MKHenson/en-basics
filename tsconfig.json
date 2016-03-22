@@ -6,15 +6,12 @@
     "declaration": true,
     "sourceMap": false,
     "preserveConstEnums": true,
-    "target": "es5"
+    "target": "es5",
+    "out": "plugin.js",
+    "outDir": "dist"
   },
   "files": [
-    "./definitions/es6-promise.d.ts",
-    "./definitions/FileUploader.d.ts",
-    "./definitions/ExportToken.d.ts",
-    "./definitions/webinate-users.d.ts",
-    "./definitions/modepress-api.d.ts",
-    "./definitions/definitions.d.ts",
-    "./definitions/app-engine.d.ts"
+    "./lib/references.d.ts",
+    "./lib/Plugin.ts"
   ]
 }
