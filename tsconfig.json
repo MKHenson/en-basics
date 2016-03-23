@@ -12,6 +12,6 @@
   },
   "files": [
     "./lib/references.d.ts",
-    "./lib/Plugin.ts"
+    "./lib/plugin.ts"
   ]
 }

@@ -46,8 +46,7 @@ gulp.task('install-definitions', function () {
             getDefinition("https://raw.githubusercontent.com/MKHenson/app-engine/dev/generated-definitions/export-token.d.ts", "lib/definitions/required/", "export-token.d.ts"),
             getDefinition("https://raw.githubusercontent.com/MKHenson/app-engine/dev/generated-definitions/engine-definitions.d.ts", "lib/definitions/required/", "engine-definitions.d.ts"),
             getDefinition("https://raw.githubusercontent.com/MKHenson/users/dev/dist/definitions/definitions.d.ts", "lib/definitions/required/", "users.d.ts"),
-            getDefinition("https://raw.githubusercontent.com/MKHenson/modepress/dev/server/definitions/modepress-api.d.ts", "lib/definitions/required/", "modepress-api.d.ts"),
-            //getDefinition("https://raw.githubusercontent.com/MKHenson/modepress/dev/server/definitions/modepress-client.d.ts", "lib/definitions/required/", "modepress-client.d.ts")
+            getDefinition("https://raw.githubusercontent.com/MKHenson/modepress/dev/server/definitions/modepress-api.d.ts", "lib/definitions/required/", "modepress-api.d.ts")
          ]);
 });
 
@@ -56,7 +55,7 @@ gulp.task('install-definitions', function () {
  */
 gulp.task('ts-code', function() {
 
-    return gulp.src(tsFiles, { base: "." })
+    return gulp.src(tsFiles, { base: "lib" })
         .pipe(ts({
             "module": tsConfig.module,
             "removeComments": tsConfig.removeComments,
