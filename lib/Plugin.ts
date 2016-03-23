@@ -19,7 +19,7 @@
         {
             var toRet: Array<BehaviourDefinition> = [];
 
-            toRet.push(new BehaviourDefinition("Concat", 
+            toRet.push(new BehaviourDefinition("Concat",
                 [
                     new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
                     new PortalTemplate(new PropText("A", ""), PortalType.PARAMETER),
@@ -35,7 +35,7 @@
                     new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
             ], this, false, false, false, false));
 
-            toRet.push(new BehaviourDefinition("Random Int", 
+            toRet.push(new BehaviourDefinition("Random Int",
                 [
                     new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
                     new PortalTemplate(new PropNum("Min", 0), PortalType.PARAMETER),
@@ -44,14 +44,14 @@
                     new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
                 ], this, false, false, true, false));
 
-            toRet.push(new BehaviourDefinition("Random Float", 
+            toRet.push(new BehaviourDefinition("Random Float",
                 [
                     new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
                     new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
                     new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
                 ], this, false, false, true, false));
 
-            toRet.push(new BehaviourDefinition("Add", 
+            toRet.push(new BehaviourDefinition("Add",
                 [
                     new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
                     new PortalTemplate(new PropNum("A", 0), PortalType.PARAMETER),
@@ -145,7 +145,7 @@
             toRet.push(new BehaviourDefinition("Math Functions",
                 [
                     new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropEnum("Function", "Sin", ["Sin", "Tan", "Cos", "ASin", "ATan", "ACos", "Absolute", "Ceil", "Exponent", "Floor", "Log", "Round", "Square Root"]), PortalType.PARAMETER),                    
+                    new PortalTemplate(new PropEnum("Function", "Sin", ["Sin", "Tan", "Cos", "ASin", "ATan", "ACos", "Absolute", "Ceil", "Exponent", "Floor", "Log", "Round", "Square Root"]), PortalType.PARAMETER),
                     new PortalTemplate(new PropNum("Number", 0), PortalType.PARAMETER),
                     new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
                     new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
@@ -201,7 +201,7 @@
                     new PortalTemplate(new PropBool("Start", false), PortalType.INPUT),
                     new PortalTemplate(new PropBool("Global",true), PortalType.PARAMETER),
                     new PortalTemplate(new PropNum("Total Active", 0, 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropObject("Items", null), PortalType.PRODUCT), 
+                    new PortalTemplate(new PropObject("Items", null), PortalType.PRODUCT),
                     new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
                 ], this, false, false, false, false));
 
@@ -211,7 +211,7 @@
                     new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
                     new PortalTemplate(new PropObject("A", null), PortalType.PARAMETER),
                     new PortalTemplate(new PropEnum("Comparison", "Equals", ["Greater", "Greater Equals", "Equals", "Lesser", "Lesser Equals"]), PortalType.PARAMETER),
-                    new PortalTemplate(new PropObject("B", null), PortalType.PARAMETER),                    
+                    new PortalTemplate(new PropObject("B", null), PortalType.PARAMETER),
                     new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
                     new PortalTemplate(new PropBool("True", false), PortalType.OUTPUT),
                     new PortalTemplate(new PropBool("False", false), PortalType.OUTPUT)
