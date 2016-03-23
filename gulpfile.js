@@ -4,9 +4,12 @@ var fs = require('fs');
 var download = require('gulp-download');
 var rename = require('gulp-rename');
 
+// CONFIG
+//========
 // Read the contents of the tsconfig file so we dont have to specify the files twice
 var tsConfig = JSON.parse(fs.readFileSync('tsconfig.json'));
 var tsFiles = tsConfig.files;
+var animatePluginDir = '../app-engine/client/dist/plugins';
 
 // Make sure the files exist
 for (var i = 0, l = tsFiles.length; i < l; i++ )
@@ -57,16 +60,21 @@ gulp.task('ts-code', function() {
 
     return gulp.src(tsFiles, { base: "lib" })
         .pipe(ts({
-            "module": tsConfig.module,
-            "removeComments": tsConfig.removeComments,
-            "noEmitOnError": tsConfig.noEmitOnError,
-            "declaration": tsConfig.declaration,
-            "sourceMap": tsConfig.sourceMap,
-            "preserveConstEnums": tsConfig.preserveConstEnums,
-            "target": tsConfig.target,
-            "out": tsConfig.out
+            "module": tsConfig.compilerOptions.module,
+            "removeComments": tsConfig.compilerOptions.removeComments,
+            "noEmitOnError": tsConfig.compilerOptions.noEmitOnError,
+            "declaration": tsConfig.compilerOptions.declaration,
+            "sourceMap": tsConfig.compilerOptions.sourceMap,
+            "preserveConstEnums": tsConfig.compilerOptions.preserveConstEnums,
+            "target": tsConfig.compilerOptions.target,
+            "out": tsConfig.compilerOptions.out
             }))
-        .pipe(gulp.dest("dist"));
+        .pipe(gulp.dest(tsConfig.compilerOptions.outDir));
 });
 
-gulp.task('build-all', ['ts-code']);
+gulp.task('copy-to-engine', ['ts-code'], function() {
+    return gulp.src( tsConfig.compilerOptions.outDir + "/**", { base: tsConfig.compilerOptions.outDir })
+        .pipe(gulp.dest(animatePluginDir + "/en-basics"))
+})
+
+gulp.task('build-all', ['copy-to-engine']);
