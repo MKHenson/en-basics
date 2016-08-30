@@ -9,7 +9,7 @@ var rename = require('gulp-rename');
 // Read the contents of the tsconfig file so we dont have to specify the files twice
 var tsConfig = JSON.parse(fs.readFileSync('tsconfig.json'));
 var tsFiles = tsConfig.files;
-var animatePluginDir = '../app-engine/client/dist/plugins';
+var animatePluginDir = '../hatchery-editor/dist/plugins';
 
 // Make sure the files exist
 for (var i = 0, l = tsFiles.length; i < l; i++ )

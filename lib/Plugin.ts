@@ -21,200 +21,200 @@
 
             toRet.push(new BehaviourDefinition("Concat",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropText("A", ""), PortalType.PARAMETER),
-                    new PortalTemplate(new PropText("B", ""), PortalType.PARAMETER),
-                    new PortalTemplate(new PropText("Result", ""), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropText("A", ""), 'parameter'),
+                    new PortalTemplate(new PropText("B", ""), 'parameter'),
+                    new PortalTemplate(new PropText("Result", ""), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, false));
 
             toRet.push(new BehaviourDefinition("Debug",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropObject("Object", false), PortalType.PARAMETER),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropObject("Object", false), 'parameter'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
             ], this, false, false, false, false));
 
             toRet.push(new BehaviourDefinition("Random Int",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("Min", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Max", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropNum("Min", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("Max", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, false));
 
             toRet.push(new BehaviourDefinition("Random Float",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, false));
 
             toRet.push(new BehaviourDefinition("Add",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("A", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("B", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropNum("A", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("B", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, false));
 
             toRet.push(new BehaviourDefinition("Subtract",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("A", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("B", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropNum("A", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("B", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, false));
 
             toRet.push(new BehaviourDefinition("Multiply",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("A", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("B", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropNum("A", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("B", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, false));
             toRet.push(new BehaviourDefinition("Divide",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("A", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("B", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropNum("A", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("B", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, false));
 
             toRet.push(new BehaviourDefinition("Push",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropObject("Input 1", false), PortalType.PARAMETER),
-                    new PortalTemplate(new PropObject("Push 1", false), PortalType.PARAMETER),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropObject("Input 1", false), 'parameter'),
+                    new PortalTemplate(new PropObject("Push 1", false), 'parameter'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, true));
 
             toRet.push(new BehaviourDefinition("Alert",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropObject("Message", false), PortalType.PARAMETER),
-                    new PortalTemplate(new PropObject("Message Out", false), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropObject("Message", false), 'parameter'),
+                    new PortalTemplate(new PropObject("Message Out", false), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, false, false));
 
             toRet.push(new BehaviourDefinition("Timer",
                 [
-                    new PortalTemplate(new PropBool("Start", false), PortalType.INPUT),
-                    new PortalTemplate(new PropBool("Stop", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("Seconds", 0, 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropBool("Loop", true), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Count", 0, 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropNum("Delta", 0, 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropNum("Total Time", 0, 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Frame", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Stopped", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Start", false), 'input'),
+                    new PortalTemplate(new PropBool("Stop", false), 'input'),
+                    new PortalTemplate(new PropNum("Seconds", 0, 0), 'parameter'),
+                    new PortalTemplate(new PropBool("Loop", true), 'parameter'),
+                    new PortalTemplate(new PropNum("Count", 0, 0), 'product'),
+                    new PortalTemplate(new PropNum("Delta", 0, 0), 'product'),
+                    new PortalTemplate(new PropNum("Total Time", 0, 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output'),
+                    new PortalTemplate(new PropBool("On Frame", false), 'output'),
+                    new PortalTemplate(new PropBool("On Stopped", false), 'output')
                 ], this, false, false, false, false));
 
             toRet.push(new BehaviourDefinition("Switch Binary",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropBool("Reset", false), PortalType.INPUT),
-                    new PortalTemplate(new PropBool("A", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("B", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropBool("Reset", false), 'input'),
+                    new PortalTemplate(new PropBool("A", false), 'output'),
+                    new PortalTemplate(new PropBool("B", false), 'output')
                 ], this, false, true, true, false));
 
             toRet.push(new BehaviourDefinition("Message Listener",
                 [
-                    new PortalTemplate(new PropBool("Start", false), PortalType.INPUT),
-                    new PortalTemplate(new PropBool("Stop", false), PortalType.INPUT),
-                    new PortalTemplate(new PropText("Message", ""), PortalType.PARAMETER),
-                    new PortalTemplate(new PropObject("Data", null), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("On Message", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Stopped", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Start", false), 'input'),
+                    new PortalTemplate(new PropBool("Stop", false), 'input'),
+                    new PortalTemplate(new PropText("Message", ""), 'parameter'),
+                    new PortalTemplate(new PropObject("Data", null), 'product'),
+                    new PortalTemplate(new PropBool("On Message", false), 'output'),
+                    new PortalTemplate(new PropBool("On Stopped", false), 'output')
                 ], this, false, false, false, false));
 
             toRet.push(new BehaviourDefinition("Message Dispatcher",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropText("Message", ""), PortalType.PARAMETER),
-                    new PortalTemplate(new PropObject("Data", null), PortalType.PARAMETER),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropText("Message", ""), 'parameter'),
+                    new PortalTemplate(new PropObject("Data", null), 'parameter'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, false, false));
 
             toRet.push(new BehaviourDefinition("Math Functions",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropEnum("Function", "Sin", ["Sin", "Tan", "Cos", "ASin", "ATan", "ACos", "Absolute", "Ceil", "Exponent", "Floor", "Log", "Round", "Square Root"]), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Number", 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropEnum("Function", "Sin", ["Sin", "Tan", "Cos", "ASin", "ATan", "ACos", "Absolute", "Ceil", "Exponent", "Floor", "Log", "Round", "Square Root"]), 'parameter'),
+                    new PortalTemplate(new PropNum("Number", 0), 'parameter'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, false, false));
 
             toRet.push(new BehaviourDefinition("Get Asset Property",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropAsset("Asset", null, [""]), PortalType.PARAMETER),
-                    new PortalTemplate(new PropBool("Use Instance", false), PortalType.PARAMETER),
-                    new PortalTemplate(new PropText("A Name", ""), PortalType.PARAMETER),
-                    new PortalTemplate(new PropObject("A Value", false), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropAsset("Asset", null, [""]), 'parameter'),
+                    new PortalTemplate(new PropBool("Use Instance", false), 'parameter'),
+                    new PortalTemplate(new PropText("A Name", ""), 'parameter'),
+                    new PortalTemplate(new PropObject("A Value", false), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, true, true));
 
             toRet.push(new BehaviourDefinition("If Condition",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropObject("Condition", false), PortalType.PARAMETER),
-                    new PortalTemplate(new PropBool("True", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("False", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropObject("Condition", false), 'parameter'),
+                    new PortalTemplate(new PropBool("True", false), 'output'),
+                    new PortalTemplate(new PropBool("False", false), 'output')
                 ], this, false, false, false, false));
 
             toRet.push(new BehaviourDefinition("Counter",
                 [
-                    new PortalTemplate(new PropBool("Start", false), PortalType.INPUT),
-                    new PortalTemplate(new PropBool("Increment", false), PortalType.INPUT),
-                    new PortalTemplate(new PropNum("Total", 0, 0), PortalType.PARAMETER),
-                    new PortalTemplate(new PropBool("Loop", false), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Counter", 0, 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("On Start", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Reset", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Complete", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Counter", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Start", false), 'input'),
+                    new PortalTemplate(new PropBool("Increment", false), 'input'),
+                    new PortalTemplate(new PropNum("Total", 0, 0), 'parameter'),
+                    new PortalTemplate(new PropBool("Loop", false), 'parameter'),
+                    new PortalTemplate(new PropNum("Counter", 0, 0), 'product'),
+                    new PortalTemplate(new PropBool("On Start", false), 'output'),
+                    new PortalTemplate(new PropBool("On Reset", false), 'output'),
+                    new PortalTemplate(new PropBool("On Complete", false), 'output'),
+                    new PortalTemplate(new PropBool("On Counter", false), 'output')
                 ], this, false, false, false, false));
 
 
             toRet.push(new BehaviourDefinition("Loading Progress",
                 [
-                    new PortalTemplate(new PropBool("Start", false), PortalType.INPUT),
-                    new PortalTemplate(new PropBool("Stop", false), PortalType.INPUT),
-                    new PortalTemplate(new PropText("Container Name", ""), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Percentage", 0, 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("On Start", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Stop", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Progress", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("On Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Start", false), 'input'),
+                    new PortalTemplate(new PropBool("Stop", false), 'input'),
+                    new PortalTemplate(new PropText("Container Name", ""), 'parameter'),
+                    new PortalTemplate(new PropNum("Percentage", 0, 0), 'product'),
+                    new PortalTemplate(new PropBool("On Start", false), 'output'),
+                    new PortalTemplate(new PropBool("On Stop", false), 'output'),
+                    new PortalTemplate(new PropBool("On Progress", false), 'output'),
+                    new PortalTemplate(new PropBool("On Complete", false), 'output')
                 ], this, false, false, false, false));
 
 
             toRet.push(new BehaviourDefinition("Get Active Items",
                 [
-                    new PortalTemplate(new PropBool("Start", false), PortalType.INPUT),
-                    new PortalTemplate(new PropBool("Global",true), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Total Active", 0, 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropObject("Items", null), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("Complete", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Start", false), 'input'),
+                    new PortalTemplate(new PropBool("Global",true), 'parameter'),
+                    new PortalTemplate(new PropNum("Total Active", 0, 0), 'product'),
+                    new PortalTemplate(new PropObject("Items", null), 'product'),
+                    new PortalTemplate(new PropBool("Complete", false), 'output')
                 ], this, false, false, false, false));
 
 
             toRet.push(new BehaviourDefinition("Test",
                 [
-                    new PortalTemplate(new PropBool("Execute", false), PortalType.INPUT),
-                    new PortalTemplate(new PropObject("A", null), PortalType.PARAMETER),
-                    new PortalTemplate(new PropEnum("Comparison", "Equals", ["Greater", "Greater Equals", "Equals", "Lesser", "Lesser Equals"]), PortalType.PARAMETER),
-                    new PortalTemplate(new PropObject("B", null), PortalType.PARAMETER),
-                    new PortalTemplate(new PropNum("Result", 0), PortalType.PRODUCT),
-                    new PortalTemplate(new PropBool("True", false), PortalType.OUTPUT),
-                    new PortalTemplate(new PropBool("False", false), PortalType.OUTPUT)
+                    new PortalTemplate(new PropBool("Execute", false), 'input'),
+                    new PortalTemplate(new PropObject("A", null), 'parameter'),
+                    new PortalTemplate(new PropEnum("Comparison", "Equals", ["Greater", "Greater Equals", "Equals", "Lesser", "Lesser Equals"]), 'parameter'),
+                    new PortalTemplate(new PropObject("B", null), 'parameter'),
+                    new PortalTemplate(new PropNum("Result", 0), 'product'),
+                    new PortalTemplate(new PropBool("True", false), 'output'),
+                    new PortalTemplate(new PropBool("False", false), 'output')
                 ], this, false, false, true, false));
 
             return toRet;
