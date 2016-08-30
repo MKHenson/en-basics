@@ -1,3 +1,288 @@
+declare module Engine {
+    // Extends the IProject interface to include additional data
+    export interface IProject {
+        $plugins?: Array<IPlugin>;
+    }
+
+    // Extends the IPlugin interface to include additional data
+    export interface IPlugin {
+        $loaded?: boolean;
+        $error?: string;
+        $instance?: Animate.IPlugin;
+    }
+}
+declare module Animate {
+    /**
+    * A simple interface for any component
+    */
+    export interface IComponent {
+        element: JQuery;
+        parent: IComponent;
+        dispose(): void;
+        addChild(child: string): IComponent;
+        addChild(child: IComponent): IComponent;
+        addChild(child: any): IComponent;
+        removeChild(child: IComponent): IComponent
+        update(): void;
+        selected: boolean;
+        savedID: string;
+        id: string;
+        children: Array<IComponent>;
+        clear(): void;
+        disposed: boolean;
+        onDelete(): void;
+    }
+
+    /**
+     * Describes the base type used in drag and drop communication
+     */
+    export interface IDragDropToken {
+        type: 'resource' | 'template' | 'container' | 'other';
+        id? : string | number;
+    }
+
+    /**
+	* A simple interface for any compent that needs to act as a Docker parent.
+	*/
+    export interface IDockItem extends IComponent {
+		/*This is called by a controlling Docker class. An image string needs to be returned
+		* which will act as a preview of the component that is being viewed or hidden.*/
+        getPreviewImage(): string;
+
+        /*This is called by a controlling Docker class when the component needs to be shown.*/
+        onShow(): void;
+
+        /*Each IDock item needs to implement this so that we can keep track of where it moves.*/
+        getDocker(): Docker;
+
+        /*Each IDock item needs to implement this so that we can keep track of where it moves.*/
+        setDocker(dockItem: Docker);
+
+        /*This is called by a controlling Docker class when the component needs to be hidden.*/
+        onHide(): void;
+    }
+
+    /**
+	* The IPlugin interface defines how a plugin interacts with app-engine
+	*/
+    export interface IPlugin {
+		/**
+		* This function is called by Animate to get an array of
+		* behvaiour definitions. These definitions describe what kind
+		* behvaiours a user can create in the scene.
+		* @returns {Array<BehaviourDefinition>}
+		*/
+        getBehaviourDefinitions(): Array<BehaviourDefinition>;
+
+		/**
+		* This function is called when we need to create a preview for a file that is associated with a project
+		* @param {File} file The file that needs to be previewed
+		* @param {Component} previewComponent The component which will act as the parent div of the preview.
+		* @returns {boolean} Return true if this is handled or false if not.
+		*/
+        onDisplayPreview(file: Engine.IFile, previewComponent: Component): boolean;
+
+		/**
+		* This function is called by Animate to get an array of TypeConverters. TypeConverter objects define if one type can be translated to another. They also define what the process of conversion will be.
+		*/
+        getTypeConverters(): Array<TypeConverter>;
+
+		/**
+		* This function is called by Animate to get an array of
+		* AssetsTemplate. The AssetsTemplate object is used to define what assets are available to the scene.
+		* Assets are predefined tempaltes of data that can be instantiated. The best way to think of an asset
+		* is to think of it as a predefined object that contains a number of variables. You could for example
+		* create Assets like cats, dogs, animals or humans. Its really up you the plugin writer how they want
+		* to define their assets. This function can return null if no Assets are required.
+		* @returns <Array> Returns an array of <AssetTemplate> objects
+		*/
+        getAssetsTemplate(): Array<AssetTemplate>;
+
+		/**
+		* This function is called by Animate when its time to unload a plugin. This should be used
+		* to cleanup all resources used by the plugin
+		*/
+        unload(): void;
+
+		/**
+		* Plugins can return an array of extensions that are allowed to be uploaded for Asset files. For example
+		* your plugin might require images and so would allow png and jpg files.
+		* Each extension must just be in the following format: ["png", "jpg" ..etc]
+		* @param {Array<string>} extArray The array of allowed extensions that are so far allowed.
+		* @returns {Array<string>} An array of allowed file extensions.
+		*/
+        getFileUploadExtensions(extArray: Array<string>): Array<string>;
+    }
+
+    /**
+	* A basic wrapper for a Portal interface
+	*/
+    export class IPortal {
+        name: string;
+        type: number;
+        custom: boolean;
+        property: any;
+    }
+
+    /**
+	* A basic wrapper for a CanvasItem interface
+	*/
+    export interface ICanvasItem {
+        shallowId: number;
+        type: number;
+        left?: string;
+        top?: string;
+    }
+
+    /**
+	* A basic wrapper for a Link interface
+	*/
+    export interface ILinkItem extends ICanvasItem {
+        frameDelay: number;
+        startPortal: string;
+        endPortal: string;
+        startBehaviour: number;
+        endBehaviour: number;
+    }
+
+    /**
+	* A basic wrapper for a Behaviour interface
+	*/
+    export interface IBehaviour extends ICanvasItem {
+        alias: string;
+        text: string;
+        portals: Array<IPortal>
+    }
+
+    /**
+    * A basic wrapper for a BehaviourPortal interface
+    */
+    export interface IBehaviourPortal extends IBehaviour {
+        portal: IPortal;
+    }
+
+    /**
+    * A basic wrapper for a BehaviourComment interface
+    */
+    export interface IBehaviourComment extends IBehaviour {
+        width: number;
+        height: number;
+    }
+
+    /**
+	* A basic wrapper for a BehaviourScript interface
+	*/
+    export interface IBehaviourScript extends IBehaviour {
+        scriptId: string;
+    }
+
+    /**
+	* A basic wrapper for a BehaviourShortcut interface
+	*/
+    export interface IBehaviourShortcut extends IBehaviour {
+        originalId: number;
+    }
+
+    /**
+	* A basic interface for a container object
+	*/
+    export interface IContainerToken {
+        items: Array<ICanvasItem>;
+        properties: any;
+    }
+
+    export interface IPreviewFactory {
+        /**
+        * This function generates a React Element that is used to preview a file
+        * @param {Engine.IFile} file The file we are looking to preview
+        * @returns {JSX.Element} If a React Element is returned is added in the File viewer preview
+        */
+        generate(file: Engine.IFile): JSX.Element;
+
+         /**
+         * Creates a thumbnail preview of the file
+         * @param {Engine.IFile} file
+         * @returns {Promise<HTMLCanvasElement>}
+         */
+        thumbnail(file: Engine.IFile): Promise<HTMLCanvasElement>;
+    }
+
+    export interface ISettingsPage extends IComponent {
+        onShow(project: Project, user: User);
+        name: string;
+        onTab(): void;
+    }
+}
+declare module Animate {
+	export interface PortalToken {
+		name: string;
+		type: string;
+		dataType: string;
+		value: any;
+	}
+
+	export interface LinkToken {
+		id: string;
+		type: string;
+		startPortal: string;
+		endPortal: string;
+		startBehaviour: string;
+		endBehaviour: string;
+		frameDelay: number;
+	}
+
+	export interface BehaviourToken {
+		id: string;
+		name: string;
+		type: string;
+
+		portals: Array<PortalToken>;
+
+		// Portal behaviours
+		portalType: string;
+		dataType: string;
+		value: any;
+
+		// Behaviour Instances
+		originalContainerID: number;
+
+		// Behaviour Script
+		shallowId: number;
+	}
+
+	export interface ContainerToken	{
+		name: string;
+		id: any;
+		behaviours: Array<BehaviourToken>;
+		links: Array<LinkToken>;
+		assets: Array<number>;
+		groups: Array<string>;
+		properties: {};
+		plugins: {};
+	}
+
+	export interface GroupToken {
+		name: string;
+        id: string;
+        items: Array<number>
+	}
+
+	export interface AssetToken {
+		name: string;
+		id: number;
+		properties: { [name: string]: any };
+		className: string;
+		assets: Array<number>;
+	}
+
+	export interface ExportToken {
+		assets: Array<AssetToken>;
+		groups: Array<GroupToken>;
+		containers: Array<ContainerToken>;
+		converters: {};
+		data: {};
+	}
+}
 declare var config: {
     "version": string;
     "userServiceUrl": string;
@@ -227,6 +512,33 @@ declare module Animate {
         const CONTAINER_CREATED: string;
     }
     /**
+     * The type of attention message to display
+     */
+    enum AttentionType {
+        WARNING = 0,
+        SUCCESS = 1,
+        ERROR = 2,
+    }
+    /**
+     * An enum to describe the different types of validation
+     * */
+    enum ValidationType {
+        /** The value must be a valid email format */
+        EMAIL = 1,
+        /** The value must be a number */
+        NUMBER = 2,
+        /** The value must only have alphanumeric characters */
+        ALPHANUMERIC = 4,
+        /** The value must not be empty */
+        NOT_EMPTY = 8,
+        /** The value cannot contain html */
+        NO_HTML = 16,
+        /** The value must only alphanumeric characters as well as '_', '-' and '!' */
+        ALPHANUMERIC_PLUS = 32,
+        /** The value must be alphanumeric characters as well as '_', '-' and '@' */
+        ALPHA_EMAIL = 64,
+    }
+    /**
     * Defines which types of files to search through
     */
     enum FileSearchType {
@@ -320,6 +632,7 @@ declare module Animate {
     }
     type EventType = ENUM | string;
     type EventCallback = (type: EventType, event: Event, sender?: EventDispatcher) => void;
+    type TypedCallback<T> = (type: T, event: Event, sender?: EventDispatcher) => void;
     /**
     * Internal class only used internally by the {EventDispatcher}
     */
@@ -355,11 +668,11 @@ declare module Animate {
         /**
         * Adds a new listener to the dispatcher class.
         */
-        on(type: EventType, func: EventCallback, context?: any): void;
+        on<T>(type: T, func: TypedCallback<T>, context?: any): any;
         /**
         * Adds a new listener to the dispatcher class.
         */
-        off(type: EventType, func: EventCallback, context?: any): void;
+        off<T>(type: T, func: TypedCallback<T>, context?: any): any;
         /**
         * Sends a message to all listeners based on the eventType provided.
         * @param {String} The trigger message
@@ -509,19 +822,6 @@ declare module Animate {
         */
         static ASSET_COPIED: EditorEvents;
     }
-    /**
-    * Event used to describe re-naming of objects. Listen for either
-    * 'renaming' or 'renamed' event types
-    */
-    class RenameFormEvent extends Event {
-        cancel: boolean;
-        name: string;
-        oldName: string;
-        object: IRenamable;
-        reason: string;
-        resourceType: ResourceType;
-        constructor(type: string, name: string, oldName: string, object: IRenamable, rt: ResourceType);
-    }
     class OkCancelFormEvent extends Event {
         text: string;
         cancel: boolean;
@@ -651,10 +951,6 @@ declare module Animate {
         item: ListViewItem;
         constructor(eventType: ListViewEvents, item: ListViewItem);
     }
-    class ListEvent extends Event {
-        item: string;
-        constructor(eventName: ListEvents, item: string);
-    }
     /**
     * A simple project event. Always related to a project resource (null if not)
     */
@@ -673,8 +969,8 @@ declare module Animate {
 }
 declare module Animate {
     /**
-    * This class describes a template. These templates are used when creating assets.
-    */
+     * This class describes a template. These templates are used when creating assets.
+     */
     class AssetClass {
         private _abstractClass;
         private _name;
@@ -683,6 +979,11 @@ declare module Animate {
         private _variables;
         classes: Array<AssetClass>;
         constructor(name: string, parent: AssetClass, imgURL: string, abstractClass?: boolean);
+        /**
+         * Gets an array of all classes that are possible from this
+         * @returns {AssetClass[]}
+         */
+        getClasses(): AssetClass[];
         /**
         * Creates an object of all the variables for an instance of this class.
         * @returns {EditableSet} The variables we are editing
@@ -746,12 +1047,36 @@ declare module Animate {
     class Utils {
         private static _withCredentials;
         private static shallowIds;
+        static validators: {
+            [type: number]: {
+                regex: RegExp;
+                name: string;
+                negate: boolean;
+                message: string;
+            };
+        };
+        /**
+         * Initializes the utils static variables
+         */
+        static init(): void;
+        /**
+         * Checks a string to see if there is a validation error
+         * @param {string} val The string to check
+         * @param {ValidationType} validator The type of validations to check
+         */
+        static checkValidation(val: string, validator: ValidationType): string;
         /**
         * Generates a new shallow Id - an id that is unique only to this local session
         * @param {number} reference Pass a reference id to make sure the one generated is still valid. Any ID that's imported can potentially offset this counter.
         * @returns {number}
         */
         static generateLocalId(reference?: number): number;
+        /**
+         * Capitalizes the first character of a string
+         * @param {string} str
+         * @returns {string}
+         */
+        static capitalize(str: string): string;
         /**
         * A predefined shorthand method for calling put methods that use JSON communication
         */
@@ -869,13 +1194,17 @@ declare module Animate {
         */
         projectReady(project: Project): void;
         /**
-        * This function generates an html node that is used to preview a file
-        * @param {Engine.IFile} file The file we are looking to preview
-        * @param {(file: Engine.IFile, image: HTMLCanvasElement | HTMLImageElement) => void} updatePreviewImg A function we can use to update the file's preview image
-        * @returns {Node} If a node is returned, the factory is responsible for showing the preview. The node will be added to the DOM. If null is returned then the engine
-        * will continue looking for a factory than can preview the file
+        * Creates a thumbnail preview of the file
+        * @param {Engine.IFile} file
+        * @returns {Promise<HTMLCanvasElement>}
         */
-        displayPreview(file: Engine.IFile, updatePreviewImg: (file: Engine.IFile, image: HTMLCanvasElement | HTMLImageElement) => void): Node;
+        thumbnail(file: Engine.IFile): Promise<HTMLCanvasElement>;
+        /**
+        * This function generates a React Element that is used to preview a file
+        * @param {Engine.IFile} file The file we are looking to preview
+        * @returns {JSX.Element} If a React Element is returned is added in the File viewer preview
+        */
+        displayPreview(file: Engine.IFile): JSX.Element;
         assetTemplates: Array<AssetTemplate>;
         loadedPlugins: Array<IPlugin>;
         /**
@@ -1137,6 +1466,7 @@ declare module Animate {
 declare module Animate {
     class DB {
         static USERS: string;
+        static USERS_SOCKET: string;
         static HOST: string;
         static API: string;
         static PLAN_FREE: string;
@@ -1363,7 +1693,7 @@ declare module Animate {
     * loading and saving data in the scene.
     */
     class Project extends EventDispatcher {
-        entry: Engine.IProject;
+        private _entry;
         saved: boolean;
         curBuild: Build;
         private _containers;
@@ -1376,6 +1706,15 @@ declare module Animate {
         * @param{string} id The database id of this project
         */
         constructor();
+        /**
+         * Gets the DB entry associated with this project
+         * @returns {Engine.IProject}
+         */
+        /**
+         * Sets the DB entry associated with this project
+         * @param {Engine.IProject}
+         */
+        entry: Engine.IProject;
         /**
         * Gets a resource by its ID
         * @param {string} id The ID of the resource
@@ -1419,17 +1758,17 @@ declare module Animate {
         * This function is used to fetch a project resource by Id
         * @param {string} id the Id of the resource to update
         * @param {ResourceType} type You can specify to load only a subset of the resources (Useful for updating if someone else is editing)
-        * @returns {Promise<T>}
+        * @returns {Promise<T | Error>}
         */
-        refreshResource<T extends ProjectResource<Engine.IResource>>(id: string, type?: ResourceType): Promise<T>;
+        refreshResource<T extends ProjectResource<Engine.IResource>>(id: string, type?: ResourceType): Promise<T | Error>;
         /**
         * Use this to edit the properties of a resource
         * @param {string} id The id of the object we are editing.
         * @param {T} data The new data for the resource
         * @param {ResourceType} type The type of resource we are editing
-        * @returns {Promise<Modepress.IResponse>}
+        * @returns {Promise<Modepress.IResponse | Error>}
         */
-        editResource<T>(id: string, data: T, type: ResourceType): Promise<Modepress.IResponse>;
+        editResource<T>(id: string, data: T, type: ResourceType): Promise<Modepress.IResponse | Error>;
         /**
         * Use this to save the properties of a resource
         * @param {string} id The id of the object we are saving.
@@ -1447,9 +1786,9 @@ declare module Animate {
         * Use this to delete a resource by its Id
         * @param {string} id The id of the object we are deleting
         * @param {ResourceType} type The type of resource we are renaming
-        * @returns {Promise<boolean>}
+        * @returns {Promise<boolean | Error>}
         */
-        deleteResource(id: string, type: ResourceType): Promise<boolean>;
+        deleteResource(id: string, type: ResourceType): Promise<boolean | Error>;
         /**
         * Copies an existing resource and assigns a new ID to the cloned item
         * @param {string} id The id of the resource we are cloning from
@@ -1472,7 +1811,7 @@ declare module Animate {
         * @param {ResourceType} type The type of resource we are renaming
         * @returns { Promise<ProjectResource<any>>}
         */
-        createResource<T>(type: ResourceType, data: T): Promise<ProjectResource<T>>;
+        createResource<T extends Engine.IResource>(type: ResourceType, data: T): Promise<ProjectResource<T>>;
         /**
         * This function is used to create an entry for this project on the DB.
         */
@@ -1545,10 +1884,9 @@ declare module Animate {
         * @param {string} password The password of the user.
         * @param {string} email The email of the user.
         * @param {string} captcha The captcha of the login screen
-        * @param {string} captha_challenge The captha_challenge of the login screen
         * @returns {Promise<UsersInterface.IAuthenticationResponse>}
         */
-        register(user: string, password: string, email: string, captcha: string, captha_challenge: string): Promise<UsersInterface.IAuthenticationResponse>;
+        register(user: string, password: string, email: string, captcha: string): Promise<UsersInterface.IAuthenticationResponse>;
         /**
         * This function is used to resend a user's activation code
         * @param {string} user
@@ -1571,9 +1909,10 @@ declare module Animate {
         * it will return null.
         * @param {number} index The index to  fetching projects for
         * @param {number} limit The limit of how many items to fetch
+        * @param {string} search Optional search text
         * @return {Promise<ModepressAddons.IGetProjects>}
         */
-        getProjectList(index: number, limit: number): Promise<ModepressAddons.IGetProjects>;
+        getProjectList(index: number, limit: number, search?: string): Promise<ModepressAddons.IGetProjects>;
         /**
         * Creates a new user projects
         * @param {string} name The name of the project
@@ -1625,6 +1964,44 @@ declare module Animate {
     }
 }
 declare module Animate {
+    type SocketEvents = 'error' | UsersInterface.SocketTokens.ClientInstructionType;
+    /**
+     * A singleton class that deals with comminication between the client frontend
+     * and the socket backends.
+     */
+    class SocketManager extends EventDispatcher {
+        private static _singleton;
+        private _usersSocket;
+        /**
+         * Creates the singleton
+         */
+        constructor();
+        /**
+         * Attempts to reconnect when the socket loses its connection
+         */
+        private _reConnect(e);
+        /**
+         * Called whenever we get a message from the users socket API
+         * @param {MessageEvent} e
+         */
+        onMessage(e: MessageEvent): void;
+        /**
+         * Called whenever an error occurs
+         * @param {Error} e
+         */
+        onError(e: Error): void;
+        /**
+         * Attempts to connect to the user's socket api
+         */
+        connect(): void;
+        /**
+         * Gets the singleton
+         * @returns {SocketManager}
+         */
+        static get: SocketManager;
+    }
+}
+declare module Animate {
     /**
     * Abstract class downloading content by pages
     */
@@ -1672,13 +2049,17 @@ declare module Animate {
         private _maxPreviewSize;
         constructor();
         /**
-        * This function generates an html node that is used to preview a file
-        * @param {Engine.IFile} file The file we are looking to preview
-        * @param {(file: Engine.IFile, image: HTMLCanvasElement | HTMLImageElement) => void} updatePreviewImg A function we can use to update the file's preview image
-        * @returns {Node} If a node is returned, the factory is responsible for showing the preview. The node will be added to the DOM. If null is returned then the engine
-        * will continue looking for a factory than can preview the file
-        */
-        generate(file: Engine.IFile, updatePreviewImg: (file: Engine.IFile, image: HTMLCanvasElement | HTMLImageElement) => void): Node;
+         * Creates a thumbnail preview of the file
+         * @param {Engine.IFile} file
+         * @returns {Promise<HTMLCanvasElement>}
+         */
+        thumbnail(file: Engine.IFile): Promise<HTMLCanvasElement>;
+        /**
+         * This function generates a React Element that is used to preview a file
+         * @param {Engine.IFile} file The file we are looking to preview
+         * @returns {JSX.Element} If a React Element is returned is added in the File viewer preview
+         */
+        generate(file: Engine.IFile): JSX.Element;
     }
 }
 declare module Animate {
@@ -1690,13 +2071,13 @@ declare module Animate {
         percent: number;
         private _onProg;
         private _onComplete;
-        constructor(onProg?: ProgressCallback, onComp?: CompleteCallback);
+        constructor(onComp?: CompleteCallback, onProg?: ProgressCallback);
         numDownloads: number;
-        uploadFile(file: File, meta?: any, parentFile?: string): void;
+        uploadFile(files: File[], meta?: any, parentFile?: string): void;
         upload2DElement(img: HTMLImageElement | HTMLCanvasElement, name: string, meta?: Engine.IFileMeta, parentFile?: string): void;
         uploadArrayBuffer(array: ArrayBuffer, name: string, meta?: any, parentFile?: string): void;
         uploadTextAsFile(text: string, name: string, meta?: any, parentFile?: string): void;
-        upload(form: FormData, url: string, identifier: string, parentFile?: string): void;
+        upload(form: FormData, url: string, parentFile?: string): void;
     }
 }
 declare module Animate {
@@ -1729,8 +2110,8 @@ declare module Animate {
         */
         removeVar(name: string): void;
         /**
-        * Broadcasts an "edited" event to the owner of the set
-        */
+         * Broadcasts an "edited" event to the owner of the set
+         */
         notifyEdit(prop: Prop<any>): void;
         /**
         * Updates a variable with a new value
@@ -2295,82 +2676,6 @@ declare module Animate {
     }
 }
 declare module Animate {
-    class LogType extends ENUM {
-        constructor(v: string);
-        static MESSAGE: LogType;
-        static WARNING: LogType;
-        static ERROR: LogType;
-    }
-    /**
-    * The Logger is a singleton class used to write message's to Animate's log window.
-    */
-    class Logger extends MenuList {
-        private static _singleton;
-        private context;
-        private mDocker;
-        private warningFlagger;
-        private mContextProxy;
-        constructor(parent: Component);
-        /**
-        * @type public mfunc onIconClick
-        * When we click the error warning
-        * @extends <Logger>
-        */
-        onIconClick(): void;
-        /**
-        * @type public mfunc getPreviewImage
-        * This is called by a controlling ScreenManager class. An image string needs to be returned
-        * which will act as a preview of the component that is being viewed or hidden.
-        * @extends <Logger>
-        * @returns <string>
-        */
-        getPreviewImage(): string;
-        /**
-        * This is called by a controlling Docker class when the component needs to be shown.
-        */
-        onShow(): void;
-        /**
-        * This is called by a controlling Docker class when the component needs to be hidden.
-        */
-        onHide(): void;
-        /**
-        * Each IDock item needs to implement this so that we can keep track of where it moves.
-        * @returns {Docker}
-        */
-        getDocker(): Docker;
-        /**
-        * Each IDock item needs to implement this so that we can keep track of where it moves.
-        * @param {Docker} val
-        */
-        setDocker(val: Docker): void;
-        /**
-        * Called when the context menu is about to open
-        */
-        onContextSelect(response: ContextMenuEvents, event: ContextMenuEvent, sender?: EventDispatcher): void;
-        /**
-        * Called when the context menu is about to open
-        */
-        onContext(e: any): void;
-        /**
-        * Adds an item to the Logger
-        * @param {string} val The text to show on the logger.
-        * @param {any} tag An optional tag to associate with the log.
-        * @param {string} type The type of icon to associate with the log. By default its Logger.MESSAGE
-        */
-        static logMessage(val: string, tag: any, type?: LogType): JQuery;
-        /**
-        * Clears all the log messages
-        */
-        clearItems(): void;
-        /**
-        * Gets the singleton instance.
-        * @param {Component} parent
-        * @returns {Logger}
-        */
-        static getSingleton(parent?: Component): Logger;
-    }
-}
-declare module Animate {
     /**
     * A Docker is used in Animate so that we can divide up screen real estate. A box is added to a parent component
     * which, when hovered or dragged, will enabled the user to move components around or explore hidden sections
@@ -2411,91 +2716,68 @@ declare module Animate {
     }
 }
 declare module Animate {
-    class SplitOrientation extends ENUM {
-        constructor(v: string);
-        static VERTICAL: SplitOrientation;
-        static HORIZONTAL: SplitOrientation;
+    enum SplitOrientation {
+        VERTICAL = 0,
+        HORIZONTAL = 1,
+    }
+    interface ISplitPanelProps {
+        left?: JSX.Element;
+        right?: JSX.Element;
+        top?: JSX.Element;
+        bottom?: JSX.Element;
+        orientation?: SplitOrientation;
+        ratio?: number;
+        dividerSize?: number;
+        onRatioChanged?: (ratio: number) => void;
+    }
+    interface ISplitPanelState {
+        ratio?: number;
+        dragging?: boolean;
     }
     /**
-    * A Component that holds 2 sub Components and a splitter to split between them.
-    */
-    class SplitPanel extends Component {
-        private offsetLeft;
-        private offsetTop;
-        private mPercent;
-        private mDividerSize;
-        private mPanel1;
-        private mPanel2;
-        private mDivider;
-        private mDividerDragging;
-        private mOrientation;
-        private mPanelOverlay1;
-        private mPanelOverlay2;
-        private mMouseDownProxy;
+     * A Component that holds 2 sub Components and a splitter to split between them.
+     */
+    class SplitPanel extends React.Component<ISplitPanelProps, ISplitPanelState> {
+        static defaultProps: ISplitPanelProps;
         private mMouseUpProxy;
         private mMouseMoveProxy;
         /**
-        * @param {Component} parent The parent to which this component is attached
-        * @param {SplitOrientation} orientation The orientation of the slitter. It can be either SplitOrientation.VERTICAL or SplitOrientation.HORIZONTAL
-        * @param {number} ratio The ratio of how far up or down, top or bottom the splitter will be. This is between 0 and 1.
-        * @param {number} dividerSize The size of the split divider.
-        */
-        constructor(parent: Component, orientation?: SplitOrientation, ratio?: number, dividerSize?: number);
+         * Creates a new instance
+         */
+        constructor(props: ISplitPanelProps);
         /**
-        * This function is called when the mouse is down on the divider
-        * @param {any} e The jQuery event object
-        */
-        onDividerMouseDown(e: any): void;
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: ISplitPanelProps): void;
         /**
-        * This function is called when the mouse is up from the body of stage.
-        * @param {any} e The jQuery event object
-        */
-        onStageMouseUp(e: any): void;
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
         /**
-        * Call this function to update the panel.
-        */
-        update(): void;
+          * This function is called when the mouse is down on the divider
+          * @param {React.MouseEvent} e
+          */
+        onDividerMouseDown(e: React.MouseEvent): void;
         /**
-        * This function is called when the mouse is up from the body of stage.
-        * @param {any} e The jQuery event object
-        */
-        onStageMouseMove(e: any): boolean;
+         * Recalculate the ratios on mouse up
+         * @param {MouseEvent} e
+         */
+        onStageMouseUp(e: MouseEvent): void;
         /**
-        * Call this function to get the ratio of the panel. Values are from 0 to 1.
-        */
+         * This function is called when the mouse is up from the body of stage.
+         * @param {any} e The jQuery event object
+         */
+        onStageMouseMove(e: MouseEvent): void;
         /**
-        * Call this function to set the ratio of the panel. Values are from 0 to 1.
-        * @param {number} val The ratio from 0 to 1 of where the divider should be
-        */
+         * Call this function to get the ratio of the panel. Values are from 0 to 1.
+         * @returns {number}
+         */
+        /**
+         * Call this function to set the ratio of the panel. Values are from 0 to 1.
+         * @param {number} val The ratio from 0 to 1 of where the divider should be
+         */
         ratio: number;
-        /**
-        * gets the orientation of this split panel
-        */
-        /**
-        * Use this function to change the split panel from horizontal to vertcal orientation.
-        * @param val The orientation of the split. This can be either SplitPanel.VERTICAL or SplitPanel.HORIZONTAL
-        */
-        orientation: SplitOrientation;
-        /**
-        * Gets the top panel.
-        */
-        top: Component;
-        /**
-        * Gets the bottom panel.
-        */
-        bottom: Component;
-        /**
-        * Gets the left panel.
-        */
-        left: Component;
-        /**
-        * Gets the right panel.
-        */
-        right: Component;
-        /**
-        * This will cleanup the component.
-        */
-        dispose(): void;
     }
 }
 declare module Animate {
@@ -2578,6 +2860,160 @@ declare module Animate {
         * This will cleanup the component.
         */
         dispose(): void;
+    }
+}
+declare module Animate {
+    interface IReactWindowProps {
+        autoCenter?: boolean;
+        title?: string;
+        modal?: boolean;
+        popup?: boolean;
+        controlBox?: boolean;
+        showCloseButton?: boolean;
+        canResize?: boolean;
+        className?: string;
+        _id?: number;
+        _closing?: () => void;
+    }
+    interface IReactWindowState {
+        centered?: boolean;
+    }
+    /**
+     * The base class for all windows in the application. Most windows will be derived from this class.
+     * You can display/hide the window by using the static Window.show and Window.hide methods.
+     */
+    class ReactWindow<T extends IReactWindowProps, S extends IReactWindowState> extends React.Component<T, S> {
+        private static _openWindows;
+        private static _windows;
+        static defaultProps: IReactWindowProps;
+        private _resizeProxy;
+        private _mouseMoveProxy;
+        private _mouseUpProxy;
+        private _mouseDeltaX;
+        private _mouseDeltaY;
+        /**
+         * Creates an instance of the react window
+         */
+        constructor(props: T);
+        /**
+         * Shows a React window component to the user
+         * @param {React.ComponentClass<IReactWindowProps>} windowType The Class of Window to render.
+         * @param {IReactWindowProps} props The properties to use for the window component
+         */
+        static show(windowType: React.ComponentClass<IReactWindowProps>, props?: IReactWindowProps): number;
+        /**
+         * Hides/Removes a window component by id
+         * @param {number} id
+         */
+        static hide(id: number): void;
+        /**
+         * When the user clicks the the header bar we initiate its dragging
+         */
+        onHeaderDown(e: React.MouseEvent): void;
+        /**
+         * Called when the window is resized
+         */
+        onResize(e: any): void;
+        /**
+         * When the mouse moves and we are dragging the header bar we move the window
+         */
+        onMouseMove(e: MouseEvent): void;
+        /**
+         * When the mouse is up we remove the dragging event listeners
+         */
+        onMouseUp(e: MouseEvent): void;
+        /**
+         * When the component is mounted
+         */
+        componentDidMount(): void;
+        /**
+         * Called when the window is to be removed
+         */
+        componentWillUnmount(): void;
+        /**
+         * When we click the modal we highlight the window
+         */
+        onModalClick(): void;
+        /**
+         * When we click the close button
+         */
+        onClose(): void;
+        /**
+         * Gets the content JSX for the window. Typically this is the props.children, but can be overriden
+         * in derived classes
+         */
+        getContent(): React.ReactNode;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IReactContextMenuItem {
+        onSelect?: (item: IReactContextMenuItem) => void;
+        tag?: any;
+        label: string;
+        prefix?: JSX.Element;
+        image?: string;
+        items?: IReactContextMenuItem[];
+    }
+    interface IReactContextMenuProps {
+        x: number;
+        y: number;
+        className?: string;
+        items?: IReactContextMenuItem[];
+        _closing?: () => void;
+    }
+    /**
+     * A React component for showing a context menu.
+     * Simply call ReactContextMenu.show and provide the IReactContextMenuItem items to show
+     */
+    class ReactContextMenu extends React.Component<IReactContextMenuProps, any> {
+        private static _menuCount;
+        private static _menus;
+        static defaultProps: IReactContextMenuProps;
+        private _mouseUpProxy;
+        /**
+         * Creates a context menu instance
+         */
+        constructor(props: IReactContextMenuProps);
+        /**
+         * When we click on a menu item
+         */
+        private onMouseDown(e, item);
+        /**
+         * Draws each of the submenu items
+         */
+        private drawMenuItems(item, level, index);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+        /**
+         * When the mouse is up we remove the dragging event listeners
+         */
+        private onMouseUp(e);
+        /**
+         * When the component is mounted
+         */
+        componentDidMount(): void;
+        /**
+         * Called when the component is to be removed
+         */
+        componentWillUnmount(): void;
+        /**
+         * Shows a React context menu component to the user
+         * @param {IReactContextMenuProps} props The properties to use for the context menu component
+         */
+        static show(props: IReactContextMenuProps): number;
+        /**
+         * Hides/Removes a context menu component by id
+         * @param {number} id
+         */
+        static hide(id: number): void;
     }
 }
 declare module Animate {
@@ -2664,135 +3100,115 @@ declare module Animate {
     }
 }
 declare module Animate {
+    interface ITabProps {
+        panes: React.ReactElement<ITabPaneProps>[];
+    }
+    interface ITabState {
+        selectedIndex: number;
+    }
     /**
-    * This class is used to create tree view items.
-    */
-    class TreeView extends Component {
-        private _selectedNode;
-        private fixDiv;
-        private _selectedNodes;
-        constructor(parent: Component);
+     * A Tab Component for organising pages of content into separate labelled tabs/folders
+     */
+    class Tab extends React.Component<ITabProps, ITabState> {
+        static contextMenu: ContextMenu;
+        private _panes;
         /**
-        * When we click the view
-        * @param {any} e
-        */
-        onClick(e: any): void;
+         * Creates a new instance of the tab
+         */
+        constructor(props: ITabProps);
         /**
-        * Selects a node.
-        * @param {TreeNode} node The node to select
-        * @param {boolean} expandToNode A bool to say if we need to traverse the tree down until we get to the node
-        * and expand all parent nodes
-        * @param {boolean} multiSelect If true then multiple nodes are selected
-        */
-        selectNode(node: TreeNode, expandToNode?: boolean, multiSelect?: boolean): void;
+         * When the props are reset we remove all the existing panes and create the new ones
+         */
+        componentWillReceiveProps(nextProps: ITabProps): void;
         /**
-        * This will add a node to the treeview
-        * @param {TreeNode} node The node to add
-        * @returns {TreeNode}
-        */
-        addNode(node: TreeNode): TreeNode;
-        /** @returns {Array<TreeNode>} The nodes of this treeview.*/
-        nodes(): Array<TreeNode>;
+         * Removes a pane from from the tab
+         * @param {number} index The index of the selected tab
+         * @param {ITabPaneProps} props props of the selected tab
+         */
+        removePane(index: number, prop: ITabPaneProps): void;
         /**
-        * This will clear and dispose of all the nodes
-        * @returns Array<TreeNode> The nodes of this tree
-        */
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+        /**
+         * When we select a tab
+         * @param {number} index The index of the selected tab
+         * @param {ITabPaneProps} props props of the selected tab
+         */
+        onTabSelected(index: number, props: ITabPaneProps): void;
+        /**
+         * Called when we click an item on the context menu
+         * @param {ContextMenuEvents} response
+         * @param {ContextMenuEvent} event
+         */
+        onContext(response: ContextMenuEvents, event: ContextMenuEvent): void;
+        /**
+         * Select a panel by index
+         * @param {number} index
+         */
+        selectByIndex(index: number): ITabPaneProps;
+        /**
+         * Select a panel by its label
+         * @param {string} label
+         */
+        selectByLabel(label: string): ITabPaneProps;
+        /**
+         * Select a panel by its property object
+         * @param {ITabPaneProps} props
+         */
+        selectByProps(props: ITabPaneProps): ITabPaneProps;
+        /**
+         * Shows the context menu
+         */
+        showContext(e: React.MouseEvent): void;
+        /**
+         * Adds a dynamic pane to the tab
+         */
+        addTab(pane: React.ReactElement<ITabPaneProps>): void;
+        /**
+         * Gets a tab's' props by its label
+         * @param {string} val The label text of the tab
+         * @returns {TabPair} The tab pair containing both the label and page {Component}s
+         */
+        getPaneByLabel(label: string): ITabPaneProps;
+        /**
+         * Called when the component is unmounted
+         */
+        componentwillunmount(): void;
+        /**
+         * Removes all panes from the tab
+         */
         clear(): void;
         /**
-        * This removes a node from the treeview
-        * @param {TreeNode} node The node to remove
-        * @returns {TreeNode}
-        */
-        removeNode(node: any): TreeNode;
-        /**
-        * This will recursively look through each of the nodes to find a node with
-        * the specified name.
-        * @param {string} property The name property we are evaluating
-        * @param {any} value The object we should be comparing against
-        * @returns {TreeNode}
-        */
-        findNode(property: string, value: any): TreeNode;
-        selectedNode: TreeNode;
-        selectedNodes: Array<TreeNode>;
+         * Gets an array of all the tab props
+         * @returns {ITabPaneProps[]}
+         */
+        panes: ITabPaneProps[];
     }
 }
 declare module Animate {
-    class TabEvents extends ENUM {
-        constructor(v: string);
-        static SELECTED: TabEvents;
-        static REMOVED: TabEvents;
+    interface ITabPaneProps {
+        label: string;
+        showCloseButton?: boolean;
+        onDispose?: (paneIndex: number, prop: ITabPaneProps) => void;
+        canSelect?: (paneIndex: number, prop: ITabPaneProps) => boolean | Promise<boolean>;
+        canClose?: (paneIndex: number, prop: ITabPaneProps) => boolean | Promise<boolean>;
     }
     /**
-    * The Tab component will create a series of selectable tabs which open specific tab pages.
-    */
-    class Tab extends Component {
-        static contextMenu: ContextMenu;
-        private _tabSelectorsDiv;
-        private _pagesDiv;
-        private _tabPairs;
-        private _selectedPair;
-        private _dropButton;
-        constructor(parent: Component);
+     * A single page/pane/folder pair for use in a Tab
+     */
+    class TabPane extends React.Component<ITabPaneProps, any> {
+        static defaultProps: ITabPaneProps;
         /**
-        * When we click the tab
-        * @param {TabPair} tab The tab pair object containing both the label and page <Comonent>s
-        */
-        onTabSelected(tab: TabPair): void;
+         * Creates a new pane instance
+         */
+        constructor(props: ITabPaneProps);
         /**
-        * @description When the context menu is clicked.
-        */
-        onContext(response: ContextMenuEvents, event: ContextMenuEvent): void;
-        /**
-        * Get the tab to select a tab page
-        * @param {TabPair} tab
-        */
-        selectTab(tab: TabPair): TabPair;
-        /**
-        * Called just before a tab is closed. If you return false it will cancel the operation.
-        * @param {TabPair} tabPair
-        * @returns {boolean}
-        */
-        onTabPairClosing(tabPair: TabPair): boolean;
-        /**
-        * When we click the tab
-        * @param {any} e
-        */
-        onClick(e: any): boolean;
-        /**
-        * When we update the tab - we move the dop button to the right of its extremities.
-        */
-        update(): void;
-        /**
-        * Adds an item to the tab
-        * @param {string} val The label text of the tab or a {TabPair} object
-        * @param {boolean} canClose
-        * @returns {TabPair} The tab pair containing both the label and page <Component>s
-        */
-        addTab(val: string, canClose: boolean): TabPair;
-        addTab(val: TabPair, canClose: boolean): TabPair;
-        /**
-        * Gets a tab pair by name.
-        * @param {string} val The label text of the tab
-        * @returns {TabPair} The tab pair containing both the label and page {Component}s
-        */
-        getTab(val: string): TabPair;
-        /**
-        * This will cleanup the component.
-        */
-        dispose(): void;
-        /**
-        * Removes all items from the tab. This will call dispose on all components.
-        */
-        clear(): void;
-        /**
-        * Removes an item from the tab
-        * @param val The label text of the tab
-        * @param {boolean} dispose Set this to true to clean up the tab
-        * @returns {TabPair} The tab pair containing both the label and page <Component>s
-        */
-        removeTab(val: string, dispose: boolean): any;
-        removeTab(val: TabPair, dispose: boolean): any;
-        tabs: Array<TabPair>;
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
     }
 }
 declare module Animate {
@@ -2957,26 +3373,6 @@ declare module Animate {
         */
         dispose(): void;
         textfield: Component;
-    }
-}
-declare module Animate {
-    /**
-    * A small holder div that emulates C# style grids. Use the content variable instead of the group directly
-    */
-    class Group extends Component {
-        private heading;
-        content: Component;
-        constructor(text: any, parent: any);
-        /**
-        * Gets or sets the label text
-        * @param {string} val The text for this label
-        * @returns {string} The text for this label
-        */
-        text(val: any): JQuery;
-        /**
-        * This will cleanup the <Group>.
-        */
-        dispose(): void;
     }
 }
 declare module Animate {
@@ -3206,178 +3602,62 @@ declare module Animate {
     }
 }
 declare module Animate {
-    class ListEvents extends ENUM {
-        constructor(v: string);
-        static ITEM_SELECTED: ListEvents;
+    interface IListItem {
+        label: string;
+        icon?: string;
+        prefix?: JSX.Element;
+    }
+    interface IListProps {
+        items?: IListItem[];
+        onSelected?: (item: IListItem) => void;
+    }
+    interface IListState {
+        selected: IListItem;
     }
     /**
-    * Use this class to create a select list.
-    */
-    class List extends Component {
-        selectBox: Component;
-        private selectProxy;
-        items: Array<JQuery>;
-        /**
-        * @param {Component} parent The parent component of this list
-        * @param {string} html An optional set of HTML to use. The default is <div class='list-box'></div>
-        * @param {string} selectHTML
-        * @param {boolean} isDropDown
-        */
-        constructor(parent: Component, html?: string, selectHTML?: string, isDropDown?: boolean);
-        /**
-        * Called when a selection is made
-        * @param <object> val Called when we make a selection
-        */
-        onSelection(val: any): void;
-        /**
-        * Adds an item to the list
-        * @param {string} val The text of the item
-        * @returns {JQuery} The jQuery object created
-        */
-        addItem(val: string): JQuery;
-        /**
-        * Sorts  the  list alphabetically
-        */
-        sort(): void;
-        /**
-        * Removes an item from the list
-        * @param <object> val The text of the item to remove
-        * @returns <object> The jQuery object
-        */
-        removeItem(val: any): JQuery;
-        /**
-        * Gets the number of list items
-        * @returns {number} The number of items
-        */
-        numItems(): number;
-        /**
-        * Gets thee selected item from the list.
-        * @returns {JQuery} The selected jQuery object
-        */
-        /**
-        * Sets thee selected item from the list.
-        * @param {string} val The text of the item
-        */
-        selectedItem: string;
-        /**
-        * Gets the selected item index from the list by its
-        * index.
-        * @returns {number} The selected index or -1 if nothing was found.
-        */
-        /**
-        * Sets the selected item index from the list by its index.
-        * @param {number} val The text of the item
-        */
-        selectedIndex: number;
-        /**
-        * Gets item from the list by its value
-        * @param {string} val The text of the item
-        * @returns {JQuery} The jQuery object
-        */
-        getItem(val: string): JQuery;
-        /**
-        * Removes all items
-        */
-        clearItems(): void;
-        /**
-        * Diposes and cleans up this component and all its child <Component>s
-        */
-        dispose(): void;
-    }
-}
-declare module Animate {
-    /**
-    * Use this class to create a drop down box of items.
-    */
-    class ComboBox extends List {
-        constructor(parent?: Component);
-    }
-}
-declare module Animate {
-    class MenuListEvents extends ENUM {
-        constructor(v: string);
-        static ITEM_CLICKED: MenuListEvents;
-    }
-    /**
-    * A specially designed type of list
-    */
-    class MenuList extends Component {
+     * A list of items, with optional tooltips & icons
+     */
+    class List extends React.Component<IListProps, IListState> {
         private _items;
-        private selectedItem;
-        constructor(parent: Component);
+        private _prevItems;
         /**
-        * Adds an HTML item
-        * @returns {string} img The URL of the image
-        * @returns {string} val The text of the item
-        * @returns {boolean} prepend True if you want to prepend as opposed to append
-        */
-        addItem(img: string, val: string, prepend?: boolean): JQuery;
+         * Creates an instance
+         */
+        constructor(props: IListProps);
         /**
-        * Removes an  item from this list
-        * @param {JQuery} item The jQuery object we are removing
-        */
-        removeItem(item: JQuery): void;
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: IListProps): void;
         /**
-        * Clears all the items added to this list
-        */
-        clearItems(): void;
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
         /**
-        * Checks if we selected an item - if so it closes the context and dispatches the ITEM_CLICKED event.
-        * @param {any} e The jQuery event object
-        */
-        onClick(e: any): void;
-        items: Array<JQuery>;
-    }
-}
-declare module Animate {
-    /**
-    * The main GUI component of the application.
-    */
-    class Application extends Component {
-        private static _singleton;
-        static bodyComponent: Component;
-        private _focusObj;
-        private _resizeProxy;
-        private _downProxy;
-        private _dockerlefttop;
-        private _dockerleftbottom;
-        private _dockerrighttop;
-        private _dockerrightbottom;
-        private _canvasContext;
-        constructor(domElement?: string);
+         * Called whenever a list item is selected
+         */
+        onItemSelected(e: React.MouseEvent, item: IListItem): void;
         /**
-        * Deals with the focus changes
-        * @param {object} e The jQuery event object
-        */
-        onMouseDown(e: any): void;
+         * Add an item to the list
+         * @param {IListItem} item
+         * @returns {IListItem}
+         */
+        addItem(item: IListItem): IListItem;
         /**
-        * Sets a component to be focused.
-        * @param {Component} comp The component to focus on.
-        */
-        setFocus(comp: Component): void;
+         * Removes an item from the list
+         * @param {IListItem} item
+         * @param {IListItem}
+         */
+        removeItem(item: IListItem): IListItem;
         /**
-        * Updates the dimensions of the application
-        * @param {object} val The jQuery event object
-        */
-        onWindowResized(val: any): void;
+         * Clears all the items added to this list
+         */
+        clear(): void;
         /**
-        * This will cleanup the component.
-        */
-        dispose(): void;
-        /**
-        *  This is called when a project is unloaded and we need to reset the GUI.
-        */
-        projectReset(): void;
-        /**
-        * Gets the singleton instance
-        */
-        static getInstance(domElement?: string): Application;
-        focusObj: Component;
-        canvasContext: CanvasContext;
-        dockerLeftTop: Docker;
-        dockerLeftBottom: Docker;
-        dockerRightTop: Docker;
-        dockerRightBottom: Docker;
+         * Gets the list items
+         * @returns {IListItem[]}
+         */
+        items: IListItem[];
     }
 }
 declare module Animate {
@@ -3424,7 +3704,7 @@ declare module Animate {
     /**
     * Behaviours are the base class for all nodes placed on a <Canvas>
     */
-    class Behaviour extends CanvasItem implements IRenamable {
+    class Behaviour extends CanvasItem {
         private _originalName;
         private _alias;
         private _canGhost;
@@ -4129,15 +4409,259 @@ declare module Animate {
     }
 }
 declare module Animate {
+    interface ITreeViewProps {
+        nodeStore: TreeNodeStore;
+    }
+    interface ITreeViewState {
+        nodes?: TreeNodeModel[];
+        focussedNode?: TreeNodeModel;
+    }
+    /**
+     * A component visually represents a TreeNodeStore and its nodes
+     */
+    class TreeView extends React.Component<ITreeViewProps, ITreeViewState> {
+        /**
+         * Creates a new instance of the treenode
+         */
+        constructor(props: ITreeViewProps);
+        /**
+         * Called whenever a node is focussed
+         */
+        onFocusNodeChange(type: string, e: Event): void;
+        /**
+         * Called whenever we need to re-create the prop tree. Usually after the structure of the nodes has changed
+         */
+        onChange(type: string): void;
+        /**
+         * When the component is updated, we check for any focussed nodes so we can scroll to them
+         */
+        componentDidUpdate(): void;
+        /**
+         * Make sure that any new node store has the appropriate event handlers
+         */
+        componentWillReceiveProps(nextProps: ITreeViewProps): void;
+        /**
+         * Cleans up the component
+         */
+        componentWillUnmount(): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface ITreeNodeProps {
+        node: TreeNodeModel;
+    }
+    /**
+     * This visual representation of a TreeNodeModel
+     */
+    class TreeNode extends React.Component<ITreeNodeProps, any> {
+        private _dropProxy;
+        /**
+         * Creates an instance
+         */
+        constructor(props: ITreeNodeProps);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    /**
+     * This class is used to create tree view items.
+     */
+    class TreeNodeStore extends EventDispatcher {
+        protected _children: TreeNodeModel[];
+        protected _selectedNodes: TreeNodeModel[];
+        protected _multiSelect: boolean;
+        protected _onlySimilarNodeSelection: boolean;
+        /**
+         * Creates a treenode store
+         */
+        constructor(children?: TreeNodeModel[]);
+        /**
+         * Adds a child node
+         * @param {TreeNodeModel} node
+         * @returns {TreeNodeModel}
+         */
+        addNode(node: TreeNodeModel): TreeNodeModel;
+        /**
+         * Removes a child node
+         * @param {TreeNodeModel} node
+         */
+        removeNode(node: TreeNodeModel): void;
+        /**
+         * Removes all nodes from the store
+         */
+        clear(): void;
+        /**
+         * Triggers a change in the tree structure
+         */
+        invalidate(): void;
+        /**
+         * Called whenever the selection has changed
+         * @param {TreeNodeModel[]} selection
+         */
+        onSelectionChange(selection: TreeNodeModel[]): void;
+        /**
+         * Called whenever a node is selectable and clicked.
+         * @param {TreeNodeModel} node
+         * @param {boolean} shiftDown
+         */
+        onNodeSelected(node: TreeNodeModel, shiftDown: boolean, toggleSelectedState?: boolean): void;
+        /**
+         * Sets the store of the node and all its children to be this store
+         */
+        setStore(node: TreeNodeModel): void;
+        private unFocus(node);
+        /**
+         * Called whenever the node receives a context event
+         * @param {React.MouseEvent} e
+         * @param {TreeNodeModel} node
+         */
+        onContext(e: React.MouseEvent, node: TreeNodeModel): void;
+        /**
+         * This will recursively look through each of the nodes to find a node with
+         * the specified name.
+         * @param {string} property The name property we are evaluating
+         * @param {any} value The object we should be comparing against
+         * @returns {TreeNodeModel}
+         */
+        findNode(property: string, value: any): TreeNodeModel;
+        /**
+         * Selects a node manually. This will also bring the focus into node
+         */
+        selectNode(node: TreeNodeModel): void;
+        /**
+         * Gets the nodes associated with this store
+         * @returns {TreeNodeModel[]}
+         */
+        getNodes(): TreeNodeModel[];
+        /**
+         * Gets the currently selected nodes
+         * @returns {TreeNodeModel[]}
+         */
+        getSelectedNodes(): TreeNodeModel[];
+    }
+}
+declare module Animate {
+    class TreeNodeModel {
+        private _icon;
+        private _label;
+        private _selected;
+        private _expanded;
+        private _disabled;
+        private _selectable;
+        children: TreeNodeModel[];
+        protected _parent: TreeNodeModel;
+        store: TreeNodeStore;
+        focussed: boolean;
+        canDrag: boolean;
+        canDrop: boolean;
+        /**
+         * Creates an instance of the node
+         */
+        constructor(label: string, icon?: JSX.Element, children?: TreeNodeModel[]);
+        /**
+         * Gets the parent node
+         * @returns {TreeNodeModel}
+         */
+        parent: TreeNodeModel;
+        /**
+         * Gets or sets the label of the node
+         * @param {string} val
+         * @returns {string}
+         */
+        label(val?: string): string;
+        /**
+         * Called whenever we start dragging. This is only called if canDrag is true.
+         * Use it to set drag data, eg: e.dataTransfer.setData("text", 'some data');
+         * @param {React.DragEvent} e
+         * @returns {IDragDropToken} Return data to serialize
+         */
+        onDragStart(e: React.DragEvent): IDragDropToken;
+        /**
+         * Called whenever we drop an item on this element. This is only called if canDrop is true.
+         * Use it to set drag data, eg: e.dataTransfer.getData("text");
+         * @param {React.DragEvent} e
+         * @param {IDragDropToken} json The unserialized data
+         */
+        onDragDrop(e: React.DragEvent, json: IDragDropToken): void;
+        /**
+         * Gets or sets if the node is selected
+         * @param {boolean} val
+         * @returns {boolean}
+         */
+        selected(val?: boolean): boolean;
+        /**
+         * Gets or sets if the node is disabled
+         * @param {boolean} val
+         * @returns {boolean}
+         */
+        disabled(val?: boolean): boolean;
+        /**
+         * Gets or sets if the node is selectable
+         * @param {boolean} val
+         * @returns {boolean}
+         */
+        selectable(val?: boolean): boolean;
+        /**
+         * Gets or sets if the node is expanded
+         * @param {boolean} val
+         * @returns {boolean}
+         */
+        expanded(val?: boolean): boolean;
+        /**
+         * Gets or sets the icon of the node
+         * @param {JSX.Element} val
+         * @returns {JSX.Element}
+         */
+        icon(val?: JSX.Element): JSX.Element;
+        /**
+         * Attempts to trigger a change event on the store
+         */
+        protected invalidate(): void;
+        /**
+         * Adds a child node
+         * @param {TreeNodeModel} node
+         * @returns {TreeNodeModel}
+         */
+        addNode(node: TreeNodeModel): TreeNodeModel;
+        /**
+         * Removes a child node
+         * @param {TreeNodeModel} node
+         */
+        removeNode(node: TreeNodeModel): void;
+        /**
+         * Called whenever the node receives a context event
+         * @param {React.MouseEvent} e
+         */
+        onContext(e: React.MouseEvent): void;
+        /**
+         * This will recursively look through each of the nodes to find one with
+         * the specified name and value.
+         * @param {string} property The Javascript property on the node that we are evaluating
+         * @param {any} value The value of the property we are comparing.
+         * @returns {TreeNodeModel}
+         */
+        findNode(property: string, value: any): TreeNodeModel;
+        /**
+         * This will cleanup the model
+         */
+        dispose(): void;
+    }
+}
+declare module Animate {
     /**
     * An implementation of the tree view for the scene.
     */
-    class TreeViewScene extends TreeView {
+    class TreeViewScene extends TreeNodeStore {
         private static _singleton;
-        private _sceneNode;
-        private _assetsNode;
-        private _groupsNode;
-        private _pluginBehaviours;
         private _contextMenu;
         private _contextCopy;
         private _contextDel;
@@ -4147,9 +4671,8 @@ declare module Animate {
         private _contextAddGroup;
         private _quickCopy;
         private _quickAdd;
-        private _contextNode;
         private _shortcutProxy;
-        constructor(parent?: Component);
+        constructor();
         onShortcutClick(e: any): void;
         onMouseMove(e: any): void;
         /**
@@ -4172,11 +4695,6 @@ declare module Animate {
         */
         onKeyDown(e: any): void;
         /**
-        * Creates an asset node for the tree
-        * @param {Asset} asset The asset to associate with the node
-        */
-        addAssetInstance(asset: Asset, collapse?: boolean): boolean;
-        /**
         * Called when we select a menu item.
         */
         onContextSelect(response: ContextMenuEvents, event: ContextMenuEvent, sender?: EventDispatcher): void;
@@ -4190,10 +4708,6 @@ declare module Animate {
         * @param {ProjectEvents} response The loader response
         * @param {ProjectEvent} data The data sent from the server
         */
-        /** When the rename form is about to proceed. We can cancel it by externally checking
-        * if against the data.object and data.name variables.
-        */
-        onRenameCheck(response: string, event: RenameFormEvent, sender?: EventDispatcher): void;
         /**
         * This function will get a list of asset instances based on their class name.
         * @param {string|Array<string>} classNames The class name of the asset, or an array of class names
@@ -4209,317 +4723,317 @@ declare module Animate {
         * Called when the context menu is about to open.
         * @param <jQuery> e The jQuery event object
         */
-        onContext(e: any): void;
+        onContext2(e: any): void;
         /**
-        * Selects a node.
-        * @param {TreeNode} node The node to select
-        * @param {boolean} expandToNode A bool to say if we need to traverse the tree down until we get to the node
-        * and expand all parent nodes
-        * @param {boolean} multiSelect Do we allow nodes to be multiply selected
-        */
-        selectNode(node: TreeNode, expandToNode?: boolean, multiSelect?: boolean): void;
+         * Called whenever the selection has changed
+         * @param {TreeNodeModel[]} selection
+         */
+        onSelectionChange(selection: TreeNodeModel[]): void;
         /**
         * Gets the singleton instance.
         * @returns <TreeViewScene> The singleton instance
         */
         static getSingleton(): TreeViewScene;
-        /**
-        * This will add a node to the treeview to represent the behaviours available to developers
-        * @param {BehaviourDefinition} template
-        * @returns {TreeNodePluginBehaviour}
-        */
-        addPluginBehaviour(template: BehaviourDefinition): TreeNodePluginBehaviour;
-        /**
-        * This will remove a node from the treeview that represents the behaviours available to developers.
-        * @param  {string} name The name if the plugin behaviour
-        * @returns {TreeNode}
-        */
-        removePluginBehaviour(name: string, dispose?: boolean): TreeNode;
-        sceneNode: TreeNode;
-        assetsNode: TreeNode;
-        groupsNode: TreeNode;
-        pluginBehaviours: TreeNode;
-        contextNode: TreeNode;
     }
 }
 declare module Animate {
     /**
-    * This is the base class for all tree node classes
-    */
-    class TreeNode extends Component implements IRenamable {
-        protected mText: string;
-        private _expanded;
-        private hasExpandButton;
-        canDelete: boolean;
-        canFocus: boolean;
-        canUpdate: boolean;
-        canCopy: boolean;
-        treeview: TreeView;
-        private _modified;
-        private _loading;
-        private _modifiedStar;
-        /**
-        * @param {string} text The text to use for this node
-        * @param {string} img An optional image to use (image src text)
-        * @param {boolean} hasExpandButton A bool to tell the node if it should use the expand button
-        */
-        constructor(text: any, img?: string, hasExpandButton?: boolean);
-        /**
-        * Gets if this tree node is in a modified state
-        * @returns {boolean}
-        */
-        /**
-        * Sets if this tree node is in a modified state
-        * @param {boolean} val
-        */
-        modified: boolean;
-        /**
-        * Gets if this tree node is busy with a loading operation
-        * @returns {boolean}
-        */
-        /**
-        * Sets if this tree node is busy with a loading operation
-        * @param {boolean} val
-        */
-        loading: boolean;
-        /**
-        * This will cleanup the component.
-        */
-        dispose(): void;
-        /**
-        * Called when the node is selected
-        */
-        onSelect(): void;
-        /**
-        * This function will rturn an array of all its child nodes
-        * @param {Function} type This is an optional type object. You can pass a function or class and it will only return nodes of that type.
-        * @param Array<TreeNode> array This is the array where data will be stored in. This can be left as null and one will be created
-        * @returns Array<TreeNode>
-        */
-        getAllNodes(type: Function, array?: Array<TreeNode>): Array<TreeNode>;
-        /**
-        * This function will expand this node and show its children.
-        */
-        expand(): void;
-        /**
-        * This function will collapse this node and hide its children.
-        */
-        collapse(): void;
-        /**
-        * This will recursively look through each of the nodes to find a node with
-        * the specified name.
-        * @param {string} property The Javascript property on the node that we are evaluating
-        * @param {any} value The value of the property we are comparing.
-        * @returns {TreeNode}
-        */
-        findNode(property: string, value: any): TreeNode;
-        /**
-        * This will clear and dispose of all the nodes
-        */
-        clear(): void;
-        /**
-        * Get if the component is selected
-        * @returns {boolean} If the component is selected or not.
-        */
-        /**
-        * Set if the component is selected
-        * @param {boolean} val Pass a true or false value to select the component.
-        */
-        selected: boolean;
-        /**
-        * Gets the text of the node
-        * @returns {string} The text of the node
-        */
-        /**
-        * Sets the text of the node
-        * @param {string} val The text to set
-        */
-        text: string;
-        /**
-        * This will add a node to the treeview
-        * @param {TreeNode} node The node to add
-        * @param {boolean} collapse True if you want to make this node collapse while adding the new node
-        * @returns {TreeNode}
-        */
-        addNode(node: TreeNode, collapse?: boolean): TreeNode;
-        /**
-        * The nodes of this treeview.
-        * @returns {Array<TreeNode>}
-        */
-        nodes: Array<TreeNode>;
-        /**
-        * Gets if this treenode is expanded or not
-        * @returns {boolean}
-        */
-        expanded: boolean;
-        /**
-        * Use this function to remove a child from this component.
-        * It uses the {JQuery} detach function to achieve this functionality.
-        * @param {IComponent} child The {IComponent} to remove from this {IComponent}'s children
-        * @returns {IComponent} The {IComponent} we have removed
-        */
-        removeChild(child: IComponent): IComponent;
-        /**
-        * This removes a node from the treeview
-        * @param {TreeNode} node The node to remove
-        * @returns {TreeNode}
-        */
-        removeNode(node: TreeNode): TreeNode;
-        name: string;
-    }
-}
-declare module Animate {
-    /**
-    * This node represents a project resource
-    */
-    class TreeNodeResource<T extends ProjectResource<Engine.IResource>> extends TreeNode {
+     * A model for referencing a project resource
+     */
+    class TreeViewNodeResource<T extends ProjectResource<Engine.IResource>> extends TreeNodeModel {
         resource: T;
-        private _dropProxy;
-        constructor(resource: T, text: string, img: string, hasExpand: boolean);
+        private _loading;
         /**
-        * Called whenever the resource is re-downloaded
-        */
-        protected onRefreshed(type: string, event: Event, sender: EventDispatcher): void;
+         * Creates an instance of the node
+         */
+        constructor(resource: T);
         /**
-        * Called whenever the resource is modified
-        */
-        protected onDeleted(type: string, event: Event, sender: EventDispatcher): void;
+         * Called whenever we start dragging. This is only called if canDrag is true.
+         * Use it to set drag data, eg: e.dataTransfer.setData("text", 'some data');
+         * @param {React.DragEvent} e
+         * @returns {IDragDropToken} Return data to serialize
+         */
+        onDragStart(e: React.DragEvent): IDragDropToken;
         /**
-        * Called whenever the resource is modified
-        */
-        protected onModified(type: string, event: Event, sender: EventDispatcher): void;
+         * Show a context menu of resource options
+         */
+        onContext(e: React.MouseEvent): void;
         /**
-        * Called when a draggable object is dropped onto the node
-        */
-        protected onDropped(event: any, ui: any): void;
+         * Gets or sets if this node is in a loading/busy state
+         * @param {boolean} val
+         * @returns {boolean}
+         */
+        loading(val?: boolean): boolean;
         /**
-        * This will cleanup the component.
-        */
+         * Gets or sets the label of the node
+         * @param {string} val
+         * @returns {string}
+         */
+        label(val?: string): string;
+        /**
+         * Gets or sets the icon of the node
+         * @param {JSX.Element} val
+         * @returns {JSX.Element}
+         */
+        icon(val?: JSX.Element): JSX.Element;
+        /**
+         * This will cleanup the model
+         */
         dispose(): void;
+        /**
+         * Called whenever the resource is modified
+         */
+        protected onDeleted(): void;
+        /**
+         * Called whenever the resource is modified
+         */
+        protected onModified(): void;
+        /**
+         * Called whenever the resource is edited
+         */
+        protected onEdited(): void;
+        /**
+         * Called when the rename context item is clicked
+         */
+        onRenameClick(): void;
+        /**
+         * Called when the delete context item is clicked
+         */
+        private onDeleteClick();
+        /**
+         * Called when the delete context item is clicked
+         */
+        private onSaveClick();
+        /**
+         * Called when the refresh context item is clicked
+         */
+        private onRefreshClick();
+        /**
+         * Called whenever the resource is re-downloaded
+         */
+        protected onRefreshed(): void;
+        /**
+         * Handles the completion of project requests
+         */
+        private handleNodePromise(promise, node);
     }
 }
 declare module Animate {
     /**
-    * Treenodes are added to the treeview class. This treenode contains a reference to the
-    * AssetClass object defined by plugins.
-    */
-    class TreeNodeAssetClass extends TreeNode {
-        assetClass: AssetClass;
-        className: string;
+     * A root node that contains the visual representations of project containers
+     */
+    class TreeViewNodeContainers extends TreeNodeModel {
+        private _context;
         /**
-        * @param {AssetClas} assetClass The asset class this node represents
-        * @param {TreeView} treeview The treeview to which this is added
-        */
-        constructor(assetClass: AssetClass, treeview: TreeView);
+         * Creates an instance of the node
+         */
+        constructor();
         /**
-        * This will get all TreeNodeAssetInstance nodes of a particular class name
-        * @param {string|Array<string>} classNames The class name of the asset, or an array of class names
-        * @returns Array<TreeNodeAssetInstance>
-        */
-        getInstances(classNames: string | Array<string>): Array<TreeNodeAssetInstance>;
-        /**
-        * This will get all sub TreeNodeAssetClass nodes
-        * @returns Array<AssetClass>
-        */
-        getClasses(): Array<AssetClass>;
-        /**
-        * This will cleanup the component.
-        */
+         * Clean up
+         */
         dispose(): void;
+        /**
+         * Show context menu items
+         */
+        onContext(e: React.MouseEvent): void;
+        /**
+         * If a container is created, then add its node representation
+         */
+        onResourceCreated(type: string, event: ProjectEvent<ProjectResource<Engine.IResource>>): void;
     }
 }
 declare module Animate {
     /**
-    * Treenodes are added to the treeview class. This treenode contains a reference to the
-    * AssetClass object defined by plugins.
-    */
-    class TreeNodeAssetInstance extends TreeNodeResource<Asset> {
+     * A root node that contains the visual representations of project groups
+     */
+    class TreeViewNodeGroups extends TreeNodeModel {
+        private _loading;
+        /**
+         * Creates an instance of the node
+         */
+        constructor();
+        /**
+         * Gets or sets the icon of the node
+         * @param {JSX.Element} val
+         * @returns {JSX.Element}
+         */
+        icon(val?: JSX.Element): JSX.Element;
+        /**
+         * Clean up
+         */
+        dispose(): void;
+        /**
+         * Show context menu items
+         */
+        onContext(e: React.MouseEvent): void;
+        /**
+         * If a container is created, then add its node representation
+         */
+        onResourceCreated(type: string, event: ProjectEvent<ProjectResource<Engine.IResource>>): void;
+    }
+}
+declare module Animate {
+    /**
+     * A root node that contains the visual representations of project assets
+     */
+    class TreeViewNodeAssets extends TreeNodeModel {
+        /**
+         * Creates an instance of the node
+         */
+        constructor();
+        /**
+         * Called whenever the node receives a context event
+         * @param {React.MouseEvent} e
+         */
+        onContext(e: React.MouseEvent): void;
+    }
+}
+declare module Animate {
+    /**
+     * A root node that contains the visual representations of project containers
+     */
+    class TreeViewNodeBehaviours extends TreeNodeModel {
+        /**
+         * Creates an instance of the node
+         */
+        constructor();
+        /**
+         * Clean up
+         */
+        dispose(): void;
+        /**
+         * Show context menu items
+         */
+        onContext(e: React.MouseEvent): void;
+        /**
+         * If a template is created, then add its node representation
+         */
+        onTemplateCreated(type: string, event: Event): void;
+    }
+}
+declare module Animate {
+    /**
+     * A node that represents an Asset Class
+     */
+    class TreeNodeAssetClass extends TreeNodeModel {
         assetClass: AssetClass;
         /**
-        * @param {AssetClass} assetClass The name of the asset's template
-        * @param {Asset} asset The asset itself
-        */
+         * Creates an instance of node
+         */
+        constructor(assetClass: AssetClass);
+        /**
+         * Clean up
+         */
+        dispose(): void;
+        /**
+         * If a container is created, then add its node representation
+         */
+        onResourceCreated(type: string, event: ProjectEvent<ProjectResource<Engine.IResource>>): void;
+        /**
+         * This will get all instance nodes of a particular class name(s)
+         * @param {string | string[]} classNames The class name of the asset, or an array of class names
+         * @returns {TreeNodeAssetInstance[]}
+         */
+        getInstances(classNames: string | string[]): TreeNodeAssetInstance[];
+    }
+}
+declare module Animate {
+    /**
+     * Treenode that contains a reference to an asset
+     */
+    class TreeNodeAssetInstance extends TreeViewNodeResource<Asset> {
+        assetClass: AssetClass;
+        /**
+         * Creates an instance of the node
+         */
         constructor(assetClass: AssetClass, asset: Asset);
         /**
-        * Called when the node is selected
-        */
-        onSelect(): void;
-        /**
-        * When we click ok on the portal form
-        * @param {string} type
-        * @param {EditEvent} data
-        */
+         * When we click ok on the portal form
+         * @param {string} type
+         * @param {EditEvent} data
+         */
         onAssetEdited(type: string, data: EditEvent, sender?: EventDispatcher): void;
         /**
-        * This will cleanup the component.
-        */
+         * This will cleanup the component.
+         */
         dispose(): void;
     }
 }
 declare module Animate {
     /**
-    *  A tree node class for behaviour container objects.
-    */
-    class TreeNodeBehaviour extends TreeNodeResource<Container> {
+     * This node represents a group asset.
+     * Other resource nodes can be dropped on these which will append the object (if valid) into the group
+     */
+    class TreeNodeGroup extends TreeViewNodeResource<GroupArray> {
         /**
-        * @param {Container} behaviour The container we are associating with this node
-        */
-        constructor(container: Container);
-        /**
-        * Called when the node is selected
-        */
-        onSelect(): void;
-        /**
-        * Whenever a container property is changed by the editor
-        */
-        onPropertyGridEdited(type: string, event: EditEvent, sender?: EventDispatcher): void;
-        /**
-        * This will cleanup the component
-        */
-        dispose(): void;
-    }
-}
-declare module Animate {
-    /**
-    * This node represents a group asset. Goups are collections of objects - think of them as arrays.
-    */
-    class TreeNodeGroup extends TreeNodeResource<GroupArray> {
+         * Creates an instance of the node
+         */
         constructor(group: GroupArray);
         /**
-        * Called whenever the resource is re-downloaded
-        */
-        protected onRefreshed(type: string, event: Event, sender: EventDispatcher): void;
+         * Called whenever the resource is re-downloaded
+         */
+        protected onRefreshed(): void;
         /**
-        * Called when a draggable object is dropped onto the canvas.
-        */
-        protected onDropped(event: any, ui: any): void;
+         * Called whenever we drop an item on this element. This is only called if canDrop is true.
+         * Use it to set drag data, eg: e.dataTransfer.getData("text");
+         * @param {React.DragEvent} e
+         * @param {IDragDropToken} json The unserialized data
+         */
+        onDragDrop(e: React.DragEvent, json: IDragDropToken): void;
     }
 }
 declare module Animate {
     /**
-    * This node represents a group instance. Goups are collections of objects - think of them as arrays.
-    */
-    class TreeNodeGroupInstance extends TreeNode {
-        private _instanceID;
+     * This node represents a group instance
+     */
+    class TreeNodeGroupInstance extends TreeNodeModel {
+        private _resource;
         private _group;
-        constructor(instanceID: number, name: string, group: GroupArray);
         /**
-        * This will cleanup the component
-        */
+         * Creates an instance of the node
+         */
+        constructor(resource: ProjectResource<Engine.IResource>, group: GroupArray);
+        /**
+         * Show a context menu of resource options
+         */
+        onContext(e: React.MouseEvent): void;
+        /**
+         * Gets or sets the label of the node
+         * @param {string} val
+         * @returns {string}
+         */
+        label(val?: string): string;
+        /**
+         * This will cleanup the component
+         */
         dispose(): void;
         shallowId: number;
     }
 }
 declare module Animate {
     /**
-    * This node represents a behaviour created by a plugin.
-    */
-    class TreeNodePluginBehaviour extends TreeNode {
+     * This node represents a behaviour created by a plugin.
+     */
+    class TreeNodePluginBehaviour extends TreeNodeModel {
         private _template;
+        /**
+         * Creates an instance of the node
+         */
         constructor(template: BehaviourDefinition);
         /**
-        * This will cleanup the component
-        */
+         * If a template is removed then remove its instance
+         */
+        onTemplateRemoved(type: string, event: Event): void;
+        /**
+         * Called whenever we start dragging. This is only called if canDrag is true.
+         * Use it to set drag data, eg: e.dataTransfer.setData("text", 'some data');
+         * @param {React.DragEvent} e
+         * @returns {IDragDropToken} Return data to serialize
+         */
+        onDragStart(e: React.DragEvent): IDragDropToken;
+        /**
+         * This will cleanup the component
+         */
         dispose(): void;
         template: BehaviourDefinition;
     }
@@ -4837,10 +5351,11 @@ declare module Animate {
         */
         getTabCanvas(behaviourID: string): Canvas;
         /**
-        * When we click the tab
-        * @param {TabPair} tab The tab pair object which contains both the label and page components
-        */
-        onTabSelected(tab: TabPair): void;
+         * When we select a tab
+         * @param {number} index The index of the selected tab
+         * @param {ITabPaneProps} props props of the selected tab
+         */
+        onTabSelected(index: number, props: ITabPaneProps): void;
         /**
         * When we start a new project we load the welcome page.
         * @param {Project} project
@@ -4867,14 +5382,7 @@ declare module Animate {
         * @returns {TabPair} Returns the tab pair
         */
         renameTab(oldName: string, newName: string): TabPair;
-        /**
-        * Removes an item from the tab
-        * @param val The label text of the tab
-        * @param {boolean} dispose Set this to true to clean up the tab
-        * @returns {TabPair} The tab pair containing both the label and page <Component>s
-        */
-        removeTab(val: string, dispose: boolean): TabPair;
-        removeTab(val: TabPair, dispose: boolean): TabPair;
+        removeTab(index: number, prop: ITabPaneProps): void;
         /**
         * When a canvas is modified we change the tab name, canvas name and un-save its tree node.
         */
@@ -4888,6 +5396,25 @@ declare module Animate {
         */
         addSpecialTab(text: string, type?: CanvasTabType, tabContent?: any): TabPair;
         currentCanvas: Canvas;
+    }
+}
+declare module Animate {
+    interface IGroupProps extends React.HTMLAttributes {
+        label: string;
+    }
+    /**
+     * A simple wrapper for a group Component
+     */
+    class Group extends React.Component<IGroupProps, any> {
+        /**
+         * Creates an instance of the group
+         */
+        constructor(props: IGroupProps);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
     }
 }
 declare module Animate {
@@ -5163,26 +5690,170 @@ declare module Animate {
     }
 }
 declare module Animate {
-    /** A very simple class to represent tool bar buttons */
-    class ToolBarButton extends Component {
-        private _radioMode;
-        private _pushButton;
-        private _proxyDown;
-        constructor(text: string, image: string, pushButton?: boolean, parent?: Component);
-        /** Cleans up the button */
-        dispose(): void;
+    /**
+     * Describes the button style
+     */
+    enum ButtonType {
+        PRIMARY = 0,
+        ERROR = 1,
+        SUCCESS = 2,
+        RED_LINK = 3,
+    }
+    interface IButtonProps extends React.HTMLAttributes {
+        preventDefault?: boolean;
+        buttonType?: ButtonType;
+    }
+    /**
+     * A base class for all buttons
+     */
+    class ReactButton extends React.Component<IButtonProps, any> {
+        static defaultProps: IButtonProps;
+        /**
+         * Creates an instance
+         */
+        constructor(props: IButtonProps);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+    /**
+     * A wrapper for the base button class to style it as a primary button
+     */
+    class ButtonPrimary extends ReactButton {
+        static defaultProps: IButtonProps;
+    }
+    /**
+     * A wrapper for the base button class to style it as a success button
+     */
+    class ButtonSuccess extends ReactButton {
+        static defaultProps: IButtonProps;
+    }
+    /**
+     * A wrapper for the base button class to style it as an error button
+     */
+    class ButtonError extends ReactButton {
+        static defaultProps: IButtonProps;
+    }
+    /**
+     * A wrapper for the base button class to style it as a red link button
+     */
+    class ButtonLink extends ReactButton {
+        static defaultProps: IButtonProps;
+    }
+}
+declare module Animate {
+    interface IImagePreviewProps extends React.HTMLAttributes {
+        src: string;
+        defaultSrc?: string;
+        label: string;
+        labelIcon?: React.ReactDOM;
+        className?: string;
+        selected?: boolean;
+        onLabelClick?: (e: React.MouseEvent) => void;
+        showLoadingIcon?: boolean;
+    }
+    /**
+     * Shows an image in a against transparent backdrop that is vertically centered and scaled into its container
+     */
+    class ImagePreview extends React.Component<IImagePreviewProps, {
+        loading: boolean;
+    }> {
+        static defaultProps: IImagePreviewProps;
+        private _imgLoader;
+        private _mounted;
+        /**
+         * Creates an instance
+         */
+        constructor(props: IImagePreviewProps);
+        componentWillUnmount(): void;
+        /**
+         * When the preview is added we start the loading process
+         */
+        componentDidMount(): void;
+        /**
+         * If the src or default props change, we reload the new image
+         */
+        componentWillReceiveProps(nextProps: IImagePreviewProps): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IImageUploaderProps {
+        onImage?: (file: Engine.IFile) => void;
+        src: string;
+        label: string;
+        onError?: (e: Error) => void;
+    }
+    interface IImageUploaderState {
+        src: string;
+    }
+    /**
+     * A small utility class for uploading and previewing an image
+     */
+    class ImageUploader extends React.Component<IImageUploaderProps, IImageUploaderState> {
+        /**
+         * Creates an instance
+         */
+        constructor(props: IImageUploaderProps);
+        /**
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: IImageUploaderProps): void;
+        /**
+         * Opens the file viewer and lets the user pick an image for their project
+         */
+        pickProjectPick(): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IToolbarButtonProps {
+        onChange: (val: boolean) => void;
+        pushButton?: boolean;
+        selected?: boolean;
+        label: string;
+        imgUrl?: string;
+        prefix?: JSX.Element;
+        disabled?: boolean;
+    }
+    interface IToolbarButtonState {
+        selected: boolean;
+    }
+    /**
+     * A very simple wrapper for a toolbar button
+     */
+    class ToolbarButton extends React.Component<IToolbarButtonProps, IToolbarButtonState> {
+        static defaultProps: IToolbarButtonProps;
+        constructor(props: IToolbarButtonProps);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+        /**
+        * Called when the props are updated
+        */
+        componentWillReceiveProps(nextProps: IVCheckboxProps): void;
         onClick(e: any): void;
         /**
-        * Get if the component is selected. When set to true a css class of 'selected' is added to the {Component}
-        */
+         * Get if the component is selected
+         * @return {boolean}
+         */
         /**
-        * Set if the component is selected. When set to true a css class of 'selected' is added to the {Component}
-        */
+         * Set if the component is selected
+         * @param {boolean}
+         */
         selected: boolean;
-        /**
-        * If true, the button will act like a radio button. It will deselect any other ToolBarButtons in its parent when its selected.
-        */
-        radioMode: boolean;
     }
 }
 declare module Animate {
@@ -5392,6 +6063,113 @@ declare module Animate {
     }
 }
 declare module Animate {
+    interface IOptionsBuildState {
+    }
+    interface IOptionsBuildProps extends IReactWindowProps {
+    }
+    /**
+     * A component for editing the build properties
+     */
+    class OptionsBuild extends React.Component<IOptionsBuildProps, any> {
+        static defaultProps: IOptionsBuildProps;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: IOptionsBuildProps);
+        /**
+         * Draws the options JSX
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IOptionsUserProps {
+    }
+    interface IOptionsUserStats {
+        bioUpdateErr?: string;
+        imageUploadErr?: string;
+        loading?: boolean;
+    }
+    /**
+     * A component for editing the user properties
+     */
+    class OptionsUser extends React.Component<IOptionsUserProps, IOptionsUserStats> {
+        static defaultProps: IOptionsUserProps;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: IOptionsUserProps);
+        /**
+         * Updates the user bio information
+         * @param {string} bio The new bio data
+         */
+        updateBio(bio: string): void;
+        /**
+         * Sets the user's avatar image
+         */
+        setAvatarUrl(file: any): void;
+        /**
+         * Draws the options JSX
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IOptionsProjectProps extends IReactWindowProps {
+    }
+    interface IOptionsProjectState {
+        infoServerMsg?: string;
+        imageUploadErr?: string;
+        loading?: boolean;
+        error?: boolean;
+    }
+    /**
+     * A component for editing the project properties
+     */
+    class OptionsProject extends React.Component<IOptionsProjectProps, IOptionsProjectState> {
+        static defaultProps: IOptionsProjectProps;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: IOptionsProjectProps);
+        /**
+         * Sets the project image url
+         * @param {Engine.IFile} file
+         */
+        setProjectImageUrl(file: Engine.IFile): void;
+        /**
+         * Attempts to update the project
+         * @param {any} project details
+         */
+        updateDetails(json: any): void;
+        /**
+         * Draws the options JSX
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IOptionsForm extends IReactWindowProps {
+    }
+    /**
+     * A form for editing various project/user options
+     */
+    class OptionsForm extends ReactWindow<IOptionsForm, IReactWindowState> {
+        static defaultProps: IOptionsForm;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: IOptionsForm);
+        /**
+         * Gets the content JSX for the window.
+         */
+        getContent(): React.ReactNode;
+    }
+}
+declare module Animate {
     /**
     * Use this form to set the project meta and update build versions.
     */
@@ -5442,12 +6220,6 @@ declare module Animate {
         */
         updateBio(bio: string): void;
         /**
-        * Called when we click on the settings tab
-        * @param {any} event
-        * @param {any} data
-        */
-        onTab(response: TabEvents, event: TabEvent, sender?: EventDispatcher): void;
-        /**
         * Use this function to add a new settings page to the settings menu
         * @param {ISettingsPage} component The ISettingsPage component we're adding
         */
@@ -5475,167 +6247,172 @@ declare module Animate {
     }
 }
 declare module Animate {
-    /**
-    * This form is used to load and select assets.
-    */
-    class FileViewer extends Window {
-        private static _singleton;
-        private _browserElm;
-        private _searchType;
-        private _shiftkey;
-        private _cancelled;
-        private $pager;
-        private $selectedFile;
-        private $loading;
-        private $errorMsg;
-        private $search;
-        private $entries;
-        private $folders;
-        private $confirmDelete;
-        private $newFolder;
-        private $editMode;
-        private $fileToken;
-        private $uploader;
-        private $onlyFavourites;
-        extensions: Array<string>;
-        selectedEntities: Array<UsersInterface.IFileEntry>;
-        selectedEntity: Engine.IFile;
-        selectedFolder: string;
+    interface IViewerFile extends Engine.IFile {
+        selected?: boolean;
+        loadingPreview?: boolean;
+    }
+    interface IFileViewerProps {
         multiSelect: boolean;
+        extensions: Array<string>;
+        onFilesSelected?: (files: Engine.IFile[]) => void;
+        onClose?: () => void;
+        readOnly?: boolean;
+    }
+    interface IFileViewerState {
+        selectedEntity?: IViewerFile;
+        errorMsg?: string;
+        loading?: boolean;
+        editMode?: boolean;
+        highlightDropZone?: boolean;
+        percent?: number;
+        fileToken?: IViewerFile;
+    }
+    /**
+     * A component for viewing the files and folders of the user's asset directory
+     */
+    class FileViewer extends React.Component<IFileViewerProps, IFileViewerState> {
+        static defaultProps: IFileViewerProps;
+        private _searchType;
+        private _entries;
+        private _uploader;
+        private _isMounted;
+        private _search;
+        private _onlyFavourites;
+        private _onlyGlobal;
+        private _selectedEntities;
         /**
-        * Creates an instance of the file uploader form
-        */
-        constructor();
+         * Creates an instance of the file viewer
+         */
+        constructor(props: IFileViewerProps);
+        onFileUploaded(err: Error, files: UsersInterface.IUploadToken[]): void;
         /**
-        * Returns a URL of a file preview image
-        * @returns {string}
-        */
-        getThumbnail(file: Engine.IFile): string;
+         * When the scope changes we update the viewable contents
+         * @param {SelectValue} option
+         */
+        onScopeChange(option: SelectValue): void;
+        getFileDetails(selectedFile: IViewerFile, editMode: boolean): JSX.Element;
         /**
-        * Specifies the type of file search
+         * Shows a message box that the user must confirm or deny if the selected files must be removed
+         */
+        confirmDelete(): void;
+        renderPanelButtons(editMode: boolean): JSX.Element;
+        /**
+         * Forces the pager to update its contents
+         */
+        invalidate(): void;
+        /**
+        * Creates the component elements
+        * @returns {JSX.Element}
         */
+        render(): JSX.Element;
+        /**
+         * Specifies the type of file search
+         */
         selectMode(type: FileSearchType): void;
         /**
-        * Attempts to open a folder
-        */
-        openFolder(folder: string): void;
+         * Sets the selected status of a file or folder
+         * @param {React.MouseEvent} e
+         * @param {IViewerFile} entity
+         */
+        selectEntity(e: React.MouseEvent, entity: IViewerFile): void;
         /**
-        * Creates a new folder
-        */
-        newFolder(): Element;
-        /**
-        * Shows / Hides the delete buttons
-        */
-        confirmDelete(): void;
-        /**
-        * Called in the HTML once a file is clicked and we need to get a preview of it
-        * @param {IFile} file The file to preview
-        */
-        getPreview(file: Engine.IFile): void;
-        /**
-        * Sets the selected status of a file or folder
-        */
-        selectEntity(entity: any): void;
-        /**
-        * Removes the window and modal from the DOM.
-        */
-        hide(): void;
-        /**
-        * Called whenever we select a file
-        */
-        fileChosen(file: Engine.IFile): void;
-        /**
-        * Removes the selected entities
-        */
+         * Removes the selected entities
+         */
         removeEntities(): void;
-        updateContent(index: number, limit: number): void;
+        updateContent(index: number, limit: number): Promise<number>;
         /**
-        * Called when we are dragging over the item
-        */
-        onDragOver(e: any): void;
+         * Whenever the file input changes we check the file is valid and then attempt to upload it
+         */
+        onFileChange(e: React.FormEvent): boolean;
         /**
-        * Called when we are no longer dragging items.
-        */
-        onDragLeave(e: any): void;
-        /**
-        * Checks if a file list has approved extensions
-        * @return {boolean}
-        */
+         * Checks if a file list is one of the approved props extensions
+         * @return {boolean}
+         */
         checkIfAllowed(files: FileList): boolean;
         /**
-        * Makes sure we only view the file types specified in the exension array
-        */
-        filterByExtensions(): Array<Engine.IFile>;
+         * Perform any cleanup if neccessary
+         */
+        componentWillUnmount(): void;
         /**
-        * Called when we are no longer dragging items.
-        */
-        onDrop(e: JQueryEventObject): boolean;
+         * Makes sure we only view the file types specified in the props exensions array
+         * @param {IViewerFile[]} files The file array we are filtering
+         * @returns {IViewerFile[]}
+         */
+        filterByExtensions(files: IViewerFile[]): IViewerFile[];
         /**
-        * Attempts to upload an image or canvas to the users asset directory and set the upload as a file's preview
-        * @param {Engine.IFile} file The target file we are setting the preview for
-        * @param {HTMLCanvasElement | HTMLImageElement} preview The image we are using as a preview
-        */
-        uploadPreview(file: Engine.IFile, preview: HTMLCanvasElement | HTMLImageElement): void;
+         * Called when we are dragging assets over the file items div
+         */
+        onDragOver(e: React.DragEvent): void;
         /**
-        * Shows the window by adding it to a parent.
-        * @param {Component} parent The parent Component we are adding this window to
-        * @param {number} x The x coordinate of the window
-        * @param {number} y The y coordinate of the window
-        * @param {boolean} isModal Does this window block all other user operations?
-        * @param {boolean} isPopup If the window is popup it will close whenever anything outside the window is clicked
-        */
-        show(parent?: Component, x?: number, y?: number, isModal?: boolean, isPopup?: boolean): void;
+         * Called when we are no longer dragging items.
+         */
+        onDragLeave(e: React.DragEvent): void;
         /**
-        * Use this function to show the file viewer and listen for when the user has selected a file
-        */
-        choose(extensions: string | Array<string>): JQueryPromise<Engine.IFile>;
+         * Called when we drop an asset on the file items div.
+         * Checks if the file is allow, and if so, it uploads the file
+         */
+        onDrop(e: React.DragEvent): void;
         /**
-        * Attempts to update the selected file
-        * @param {IFile} token The file token to update with
-        */
+         * Attempts to upload an image or canvas to the users asset directory and set the upload as a file's preview
+         * @param {IViewerFile} file The target file we are setting the preview for
+         * @param {HTMLCanvasElement | HTMLImageElement} preview The image we are using as a preview
+         */
+        uploadPreview(file: IViewerFile, preview: HTMLCanvasElement | HTMLImageElement): void;
+        /**
+         * Attempts to update the selected file
+         * @param {IFile} token The file token to update with
+         */
         updateFile(token: Engine.IFile): void;
-        /**
-        * Gets the singleton instance.
-        * @returns {FileViewer}
-        */
-        static get: FileViewer;
     }
 }
 declare module Animate {
+    interface IFileDialogueProps extends IReactWindowProps {
+        extensions?: string[];
+        multiselect?: boolean;
+        readOnly?: boolean;
+        onFilesSelected?: (file: Engine.IFile[]) => void;
+    }
     /**
-    * A window to show a blocking window with a message to the user.
-    */
-    class MessageBox extends Window {
-        private static _singleton;
-        private $message;
-        private $buttons;
-        private _handle;
-        private _callback;
-        private _context;
-        constructor();
+     * A form uploading and selecting files
+     */
+    class FileDialogue extends ReactWindow<IFileDialogueProps, IReactWindowState> {
+        static defaultProps: IFileDialogueProps;
         /**
-        * Hide the window when ok is clicked.
-        * @param {any} e The jQuery event object
-        */
-        onButtonClick(e: MouseEvent, button: string): void;
+         * Creates a new instance
+         */
+        constructor(props: IOptionsForm);
         /**
-        * When the window resizes we make sure the component is centered
-        * @param {any} e The jQuery event object
-        */
-        onResize(e: any): void;
+         * Gets the content JSX for the window.
+         */
+        getContent(): React.ReactNode;
+    }
+}
+declare module Animate {
+    interface IMessageBoxProps extends IReactWindowProps {
+        message?: string;
+        onChange?: (button: string) => void;
+        buttons?: string[];
+        type?: AttentionType;
+    }
+    /**
+     * A window to show a blocking window with a message to the user.
+     */
+    class MessageBox extends ReactWindow<IMessageBoxProps, IReactWindowState> {
+        static defaultProps: IMessageBoxProps;
         /**
-        * Static function to show the message box
-        * @param {string} caption The caption of the window
-        * @param {Array<string>} buttons An array of strings which act as the forms buttons
-        * @param { ( text : string ) => void} callback A function to call when a button is clicked
-        * @param {any} context The function context (ie the caller object)
-        */
-        static show(caption: string, buttons?: Array<string>, callback?: (text: string) => void, context?: any): void;
+         * Creates a new instance of the message box
+         */
+        constructor(props: IMessageBoxProps);
         /**
-        * Gets the message box singleton
-        * @returns {MessageBox}
-        */
-        static getSingleton(): MessageBox;
+         * Gets the content JSX for the window. Typically this is the props.children, but can be overriden
+         * in derived classes
+         */
+        getContent(): React.ReactNode;
+        /**
+         * Hide the window when ok is clicked.
+         * @param {any} e The jQuery event object
+         */
+        onButtonClick(e: React.MouseEvent, button: string): void;
     }
 }
 declare module Animate {
@@ -5644,8 +6421,6 @@ declare module Animate {
     */
     class PortalForm extends Window {
         private static _singleton;
-        private _typeCombo;
-        private _assetClassCombo;
         private _portalType;
         private _value;
         private _fromOk;
@@ -5660,10 +6435,6 @@ declare module Animate {
         * Generates all the available classes to select for asset property types
         */
         generateClasses(): void;
-        /**
-        * When the type combo is selected
-        */
-        onTypeSelect(responce: ListEvents, event: ListEvent): void;
         /**
         * Creates a new property from the data chosen
         * @param {Prop<any>}
@@ -5700,61 +6471,36 @@ declare module Animate {
     }
 }
 declare module Animate {
-    interface IRenameToken {
-        newName: string;
-        oldName: string;
-        object: IRenamable;
-        cancelled: boolean;
-    }
-    interface IRenamable {
+    interface IRenameFormProps extends IReactWindowProps {
         name?: string;
+        onRenaming?: (newName: string, prevName: string) => Error;
+        onCancel?: () => void;
+        onOk: (newName: string) => void;
+    }
+    interface IRenameFormState extends IReactWindowState {
+        $errorMsg?: string;
     }
     /**
-    * This form is used to rename objects
-    */
-    class RenameForm extends Window {
-        private static _singleton;
-        private object;
-        $errorMsg: string;
-        private $loading;
-        private $name;
-        private _projectElm;
-        private _resourceId;
-        private _type;
-        private _fromOk;
-        constructor();
+     * This form is used to rename objects
+     */
+    class RenameForm extends ReactWindow<IRenameFormProps, IRenameFormState> {
+        static defaultProps: IRenameFormProps;
         /**
-        * Hides the window from view
-        */
-        hide(): void;
-        /**
-         * Shows the window by adding it to a parent.
-         * @param {Component} parent The parent Component we are adding this window to
-         * @param {number} x The x coordinate of the window
-         * @param {number} y The y coordinate of the window
-         * @param {boolean} isModal Does this window block all other user operations?
-         * @param {boolean} isPopup If the window is popup it will close whenever anything outside the window is clicked
+         * Creates a new instance
          */
-        show(parent?: Component, x?: number, y?: number, isModal?: boolean, isPopup?: boolean): void;
+        constructor(props: IRenameFormProps);
         /**
-        * Attempts to rename an object
-        * @param {IRenamable} object
-        * @extends {RenameForm}
-        */
-        renameObject(object: IRenamable, id: string, type: ResourceType): Promise<IRenameToken>;
+         * Hides the form
+         */
+        onCancel(): void;
         /**
-        * @type public mfunc OnButtonClick
-        * Called when we click one of the buttons. This will dispatch the event OkCancelForm.CONFIRM
-        * and pass the text either for the ok or cancel buttons.
-        * @param {any} e
-        * @extends {RenameForm}
-        */
-        ok(): any;
+         * Gets the content JSX for the window.
+         */
+        getContent(): React.ReactNode;
         /**
-        * Gets the singleton instance.
-        * @returns {RenameForm}
-        */
-        static get: RenameForm;
+         * Called when the form is submitted
+         */
+        ok(name: string): void;
     }
 }
 declare module Animate {
@@ -5845,19 +6591,120 @@ declare module Animate {
 }
 declare module Animate {
     /**
+     * Describes the type of log message
+     */
+    enum LogType {
+        MESSAGE = 0,
+        WARNING = 1,
+        ERROR = 2,
+    }
+    /**
+     * The Logger is a singleton class used to write message's to Animate's log window.
+     */
+    class Logger extends List {
+        private static _singleton;
+        /**
+         * Creates an instance of the logger
+         */
+        constructor(props: IListProps);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+        /**
+         * Logs an error message
+         * @param {string} msg
+         */
+        static error(msg: string): void;
+        /**
+         * Logs a warning message
+         * @param {string} msg
+         */
+        static warn(msg: string): void;
+        /**
+         * Logs a success message
+         * @param {string} msg
+         */
+        static success(msg: string): void;
+        /**
+         * Logs a message to the logger
+         * @param {string} val The text to show on the logger.
+         * @param {any} tag An optional tag to associate with the log.
+         * @param {string} type The type of icon to associate with the log. By default its Logger.MESSAGE
+         */
+        static logMessage(val: string, tag: any, type?: LogType): IListItem;
+        /**
+         * Gets logger global instance
+         * @param {Component} parent
+         * @returns {Logger}
+         */
+        static getSingleton(parent?: Component): Logger;
+    }
+}
+declare module Animate {
+    enum TooltipPosition {
+        TOP = 0,
+        BOTTOM = 1,
+    }
+    interface ITooltipProps {
+        tooltip?: JSX.Element | string;
+        position?: TooltipPosition;
+        offset?: number;
+        disabled?: boolean;
+    }
+    interface ITooltipState {
+        showTooltip: boolean;
+    }
+    /**
+     * Creates a new tooltip react Component. The content of this Component
+     * is wrapped in a div which listens for mouse enter and leave events.
+     * When entered the tooltip property is displayed.
+     */
+    class Tooltip extends React.Component<ITooltipProps, ITooltipState> {
+        private static _tooltip;
+        static defaultProps: ITooltipProps;
+        /**
+         * Creates an instance
+         */
+        constructor(props: ITooltipProps);
+        /**
+         * When the mouse enters over the element we add the tooltip to the body
+         */
+        onMouseEnter(e: React.MouseEvent): void;
+        /**
+         * When the element is unmounted we remove the tooltip if its added
+         */
+        componentWillUnmount(): void;
+        /**
+         * When the mouse leaves we remove the tooltip
+         */
+        onMouseleave(e: React.MouseEvent): void;
+        /**
+        * Creates the component elements
+        * @returns {JSX.Element}
+        */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IToolbarProps {
+    }
+    interface IToolbarState {
+    }
+    /**
     * The main toolbar that sits at the top of the application
     */
-    class Toolbar extends Component {
+    class Toolbar extends React.Component<IToolbarProps, IToolbarState> {
         private static _singleton;
-        private _mainElm;
         private $itemSelected;
-        private _topMenu;
-        private _bottomMenu;
-        private _tabHomeContainer;
-        private _currentContainer;
-        private _currentTab;
         private _copyPasteToken;
-        constructor(parent?: Component);
+        constructor(props?: IToolbarProps);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
         /**
         * This is called when an item on the canvas has been selected
         * @param {Component} item
@@ -5867,11 +6714,6 @@ declare module Animate {
         * This is called when we have loaded and initialized a new project.
         */
         newProject(project: Project): void;
-        /**
-        * Called when we click one of the top toolbar tabs.
-        * @param {any} e
-        */
-        onMajorTab(e: any): void;
         /**
         * Opens the splash window
         */
@@ -5912,7 +6754,7 @@ declare module Animate {
         * Called when the key is pushed down
         * @param {any} event
         */
-        onKeyDown(event: any): boolean;
+        onKeyDown(event: any): void;
         /**
         * Removes a tab by its name
         * @param {string} text The name of the tab
@@ -5942,7 +6784,7 @@ declare module Animate {
         * @param {boolean} isPushButton If true, the button will remain selected when clicked.
         * @returns {Component} Returns the Component object representing the button
         */
-        createGroupButton(text: string, image?: string, group?: Component, isPushButton?: boolean): ToolBarButton;
+        createGroupButton(text: string, image?: string, group?: Component, isPushButton?: boolean): ToolbarButton;
         /**
         * Use this function to create a group button for the toolbar
         * @param {Component} parent The parent that will contain the drop down
@@ -5965,104 +6807,910 @@ declare module Animate {
     }
 }
 declare module Animate {
+    interface IPagerProps extends React.HTMLAttributes {
+        onUpdate: (index: number, limit: number) => Promise<number>;
+        limit?: number;
+    }
+    interface IPagerState {
+        index?: number;
+        limit?: number;
+        last?: number;
+    }
     /**
-    * The splash screen when starting the app
-    */
-    class Splash {
-        private static _singleton;
-        private _splashElm;
-        private _loginElm;
-        private _welcomeElm;
-        private _newProject;
-        private _loadingProject;
-        private _app;
-        private _captureInitialized;
-        private $user;
-        private $theme;
-        private $activePane;
-        private $errorMsg;
-        private $errorRed;
-        private $loading;
-        private $projects;
-        private $plugins;
-        private $selectedPlugins;
-        private $selectedProject;
-        private $selectedPlugin;
-        private $pager;
+     * A class for handling paged content. You can use the pager like you would a div element. The content
+     * of which will be displayed in a sub panel with a footer that allows the user to navigate between the content that's inserted.
+     * Use the IPagerProps events to hook for each of the navigation requests and fill the content accordingly.
+     */
+    class Pager extends React.Component<IPagerProps, IPagerState> {
+        static defaultProps: IPagerProps;
         /**
-        * Creates an instance of the splash screen
+         * Creates an instance of the pager
+         */
+        constructor(props: IPagerProps);
+        /**
+         * When the component is mounted - load the projects
+         */
+        componentWillMount(): void;
+        /**
+        * Calls the update function
         */
-        constructor(app: Application);
-        show(): void;
-        splashDimensions(): any;
-        goState(state: string, digest?: boolean): void;
-        removeProject(messageBoxAnswer: string): void;
-        openProject(project: Engine.IProject): void;
+        invalidate(): void;
+        /**
+        * Gets the current page number
+        * @returns {number}
+        */
+        getPageNum(): number;
+        /**
+        * Gets the total number of pages
+        * @returns {number}
+        */
+        getTotalPages(): number;
+        /**
+        * Sets the page search back to index = 0
+        */
+        goFirst(): void;
+        /**
+        * Gets the last set of users
+        */
+        goLast(): void;
+        /**
+        * Sets the page search back to index = 0
+        */
+        goNext(): void;
+        /**
+        * Sets the page search back to index = 0
+        */
+        goPrev(): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface ISearchBoxProps extends React.HTMLAttributes {
+        onSearch(e: React.FormEvent, searchText: string): any;
+        /**
+         * Only call onSearch when the input loses focus
+         */
+        triggerOnBlur?: boolean;
+    }
+    /**
+     * Wraps an input box with HTML that makes it look like a search bar.
+     * Add a listener for the onChange event and it will be triggered either when the input
+     * changes, or the search button is pressed.
+     */
+    class SearchBox extends React.Component<ISearchBoxProps, {
+        value: string;
+    }> {
+        static defaultProps: ISearchBoxProps;
+        /**
+         * Creates an instance of the search box
+         */
+        constructor(props: ISearchBoxProps);
+        /**
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: IVCheckboxProps): void;
+        /**
+         * Called whenever the input changes
+         */
+        onChange(e: React.FormEvent): void;
+        /**
+         * Called whenever the input loses focus
+         */
+        onBlur(e: React.FormEvent): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IAttentionProps extends React.HTMLAttributes {
+        mode?: AttentionType;
+        showIcon?: boolean;
+        allowClose?: boolean;
+    }
+    /**
+     * A simple component for displaying a styled message to the user
+     */
+    class Attention extends React.Component<IAttentionProps, {
+        isClosed: boolean;
+    }> {
+        static defaultProps: IAttentionProps;
+        /**
+         * Creates an a new intance
+         */
+        constructor(props: IAttentionProps);
+        /**
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: IAttentionProps): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    type SelectValue = {
+        label: string;
+        value: string | number;
+        selected: boolean;
+    };
+    interface IVSelectProps extends React.HTMLAttributes {
+        /**
+         * Called whenever an option is selected
+         * @param {SelectValue} option
+         * @param {HTMLSelectElement} element
+         */
+        onOptionSelected?: (option: SelectValue, element: HTMLSelectElement) => void;
+        /**
+         * An array of options to use with the select
+         */
+        options?: SelectValue[];
+        /**
+         * If true, then an empty option will be added
+         */
+        createEmptyOption?: boolean;
+        /**
+         * If true, then validation will pass when nothing is selected
+         */
+        allowEmptySelection?: boolean;
+        /**
+         * Called whenever the input fails a validation test
+         */
+        onValidationError?: (e: Error, target: VSelect) => void;
+        /**
+         * Called whenever the input passes a previously failed validation test
+         */
+        onValidationResolved?: (target: VSelect) => void;
+        /**
+         * An optional error message to use to describe when a problem occurs. If for example you have validation against
+         * not having white space - when the error passed to onValidationError is 'Cannot be empty'. If however errorMsg is
+         * provided, then that is used instead (for example 'Please specify a value for X')
+         */
+        errorMsg?: string;
+    }
+    /**
+     * A verified select box is an one that can optionally have its value verified. The select must be used in conjunction
+     * with the VForm.
+     */
+    class VSelect extends React.Component<IVSelectProps, {
+        error?: string;
+        selected?: SelectValue;
+        highlightError?: boolean;
+    }> {
+        private _pristine;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: IVSelectProps);
+        /**
+         * Gets the current selected option
+         * @returns {SelectValue}
+         */
+        value: SelectValue;
+        /**
+         * Called when the component is about to be mounted.
+         */
+        componentWillMount(): void;
+        /**
+         * Sets the highlight error state. This state adds a 'highlight-error' class which
+         * can be used to bring attention to the component
+         */
+        highlightError: boolean;
+        /**
+         * Checks the selected option
+         * @returns {string} An error string or null if there are no errors
+         */
+        validate(val: string | number): string;
+        /**
+         * Called whenever the value changes
+         * @param {React.FormEvent} e
+         */
+        private onChange(e);
+        /**
+         * Gets if this input has not been touched by the user. False is returned if it has been
+         * @returns {boolean}
+         */
+        pristine: boolean;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IVCheckboxProps extends React.HTMLAttributes {
+        onChecked?: (e: React.FormEvent, checked: boolean, input: HTMLInputElement) => void;
+        noInteractions?: boolean;
+    }
+    class VCheckbox extends React.Component<IVCheckboxProps, {
+        checked?: boolean;
+        pristine?: boolean;
+    }> {
+        static defaultProps: IVCheckboxProps;
+        /**
+         * Creates an instance
+         */
+        constructor(props: IVCheckboxProps);
+        /**
+         * Called whenever the checkbox input changes
+         * @param {React.FormEvent} e
+         */
+        onChange(e: React.FormEvent): void;
+        /**
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: IVCheckboxProps): void;
+        /**
+         * Gets the current checked state of the input
+         * @returns {boolean}
+         */
+        checked: boolean;
+        /**
+         * Gets if this input has not been touched by the user. False is returned if it has been
+         * @returns {boolean}
+         */
+        pristine: boolean;
+        /**
+        * Creates the component elements
+        * @returns {JSX.Element}
+        */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IVInputProps extends React.HTMLAttributes {
+        /**
+         * The type of validation to perform on the input. This can be treated as enum flags and use multiple validations. For example
+         * validator = ValidationType.NOT_EMPTY | ValidationType.EMAIL
+         */
+        validator?: ValidationType;
+        value?: string;
+        /**
+         * The minimum number of characters allowed
+         */
+        minCharacters?: number;
+        /**
+         * The maximum number of characters allowed
+         */
+        maxCharacters?: number;
+        /**
+         * Called whenever the input fails a validation test
+         */
+        onValidationError?: (e: Error, target: VInput) => void;
+        /**
+         * Called whenever the input passes a previously failed validation test
+         */
+        onValidationResolved?: (target: VInput) => void;
+        /**
+         * An optional error message to use to describe when a problem occurs. If for example you have validation against
+         * not having white space - when the error passed to onValidationError is 'Cannot be empty'. If however errorMsg is
+         * provided, then that is used instead (for example 'Please specify a value for X')
+         */
+        errorMsg?: string;
+        /**
+         * If true, then the input will select everything when clicked
+         */
+        selectOnClick?: boolean;
+    }
+    /**
+     * A verified input is an input that can optionally have its value verified. The input must be used in conjunction
+     * with the VForm.
+     */
+    class VInput extends React.Component<IVInputProps, {
+        error?: string;
+        value?: string;
+        highlightError?: boolean;
+    }> {
+        static defaultProps: IVInputProps;
+        private _pristine;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: any);
+        /**
+         * Gets the current value of the input
+         * @returns {string}
+         */
+        value: string;
+        /**
+         * Called when the component is about to be mounted.
+         */
+        componentWillMount(): void;
+        /**
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: IVCheckboxProps): void;
+        /**
+         * Sets the highlight error state. This state adds a 'highlight-error' class which
+         * can be used to bring attention to the component
+         */
+        highlightError: boolean;
+        /**
+         * Checks the string against all validators.
+         * @returns {string} An error string or null if there are no errors
+         */
+        getValidationErrorMsg(val: string): string;
+        /**
+         * Called whenever the value changes
+         * @param {React.FormEvent} e
+         */
+        private onChange(e);
+        /**
+         * Gets if this input has not been touched by the user. False is returned if it has been
+         * @returns {boolean}
+         */
+        pristine: boolean;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IVTextareaProps extends React.HTMLAttributes {
+        /**
+         * The type of validation to perform on the input. This can be treated as enum flags and use multiple validations. For example
+         * validator = ValidationType.NOT_EMPTY | ValidationType.EMAIL
+         */
+        validator?: ValidationType;
+        value?: string;
+        /**
+         * The minimum number of characters allowed
+         */
+        minCharacters?: number;
+        /**
+         * The maximum number of characters allowed
+         */
+        maxCharacters?: number;
+        /**
+         * Called whenever the input fails a validation test
+         */
+        onValidationError?: (e: Error, target: VTextarea) => void;
+        /**
+         * Called whenever the input passes a previously failed validation test
+         */
+        onValidationResolved?: (target: VTextarea) => void;
+        /**
+         * An optional error message to use to describe when a problem occurs. If for example you have validation against
+         * not having white space - when the error passed to onValidationError is 'Cannot be empty'. If however errorMsg is
+         * provided, then that is used instead (for example 'Please specify a value for X')
+         */
+        errorMsg?: string;
+    }
+    /**
+     * A verified textarea is an input that can optionally have its value verified. The textarea must be used in conjunction
+     * with the VForm.
+     */
+    class VTextarea extends React.Component<IVTextareaProps, {
+        error?: string;
+        value?: string;
+        highlightError?: boolean;
+        className?: string;
+    }> {
+        private _pristine;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: any);
+        /**
+         * Called when the component is about to be mounted.
+         */
+        componentWillMount(): void;
+        /**
+         * Called when the props are updated
+         */
+        componentWillReceiveProps(nextProps: IVCheckboxProps): void;
+        /**
+         * Gets the current value of the input
+         * @returns {string}
+         */
+        value: string;
+        /**
+         * Sets the highlight error state. This state adds a 'highlight-error' class which
+         * can be used to bring attention to the component
+         */
+        highlightError: boolean;
+        /**
+         * Checks the string against all validators.
+         * @returns {string} An error string or null if there are no errors
+         */
+        getValidationErrorMsg(val: string): string;
+        /**
+         * Called whenever the value changes
+         * @param {React.FormEvent} e
+         */
+        private onChange(e);
+        /**
+         * Gets if this input has not been touched by the user. False is returned if it has been
+         * @returns {boolean}
+         */
+        pristine: boolean;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    type ValidationError = {
+        name: string;
+        error: string;
+    };
+    type VGeneric = VInput | VTextarea | VCheckbox | VSelect;
+    interface IVFormProps extends React.HTMLAttributes {
+        /**
+         * If true, prevents the form being automatically submitted
+         */
+        preventDefault?: boolean;
+        /**
+         * A callback for when submit is called and there are no validation errors
+         */
+        onSubmitted: (json: any, form: VForm) => void;
+        /**
+         * A callback for when a validation error has occurred
+         */
+        onValidationError: (e: ValidationError[], form: VForm) => void;
+        /**
+         * A callback for when a previously invalid form is validated
+         */
+        onValidationsResolved: (form: VForm) => void;
+    }
+    /**
+     * A validated form is one which checks its children inputs for validation errors
+     * before allowing the form to be submitted. If there are errors the submit is not allowed.
+     * Only validated inputs are checked by the form (eg VInput). When the form is submitted
+     * via the onSubmitted callback, it sends a json object with the name and values of each of
+     * the validated inputs. The name is taken from the name of the input name attribute and the
+     * value from its value.
+     */
+    class VForm extends React.Component<IVFormProps, {
+        error?: boolean;
+        pristine?: boolean;
+    }> {
+        static defaultProps: IVFormProps;
+        private _proxyInputProblem;
+        private _className;
+        private _values;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: IVFormProps);
+        /**
+         * Focus on the name element once its mounted
+         */
+        componentDidMount(): void;
+        /**
+         * Called when the form is submitted. VForms automatically cancel the request with preventDefault.
+         * This can be disabled with the preventDefault property.
+         * @param {React.FormEvent} e
+         */
+        onSubmit(e: React.FormEvent): void;
+        /**
+         * Goes through the validations and calls submit if everything passes
+         */
+        initiateSubmit(): void;
+        /**
+         * Called whenever any of the inputs fire a change event
+         * @param {React.FormEvent} e
+         */
+        onChange(e: React.FormEvent): void;
+        /**
+         * Called if any of the validated inputs reported or resolved an error
+         * @param {Error} e The error that occurred
+         * @param {VGeneric} target The input that triggered the error
+         */
+        onError(e: Error, target: VGeneric): void;
+        /**
+         * Gets if this form has not been touched by the user. False is returned if it has been,
+         * @returns {boolean}
+         */
+        pristine: boolean;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    type PluginMap = {
+        [name: string]: IPluginPlus[];
+    };
+    interface IPluginPlus extends Engine.IPlugin {
+        expanded?: boolean;
+    }
+    interface IPluginsWidgetProps {
+        onChange(selectedPlugins: IPluginPlus[]): any;
+        onError(error: Error): any;
+    }
+    interface IPluginsWidgetState {
+        loading?: boolean;
+        plugins?: PluginMap;
+        selectedPlugin?: IPluginPlus;
+        activePlugin?: IPluginPlus;
+        selectedPlugins?: IPluginPlus[];
+    }
+    /**
+     * A class for displaying a list of available plugins that can be used with a project.
+     */
+    class PluginsWidget extends React.Component<IPluginsWidgetProps, IPluginsWidgetState> {
+        /**
+         * Creates an instance
+         */
+        constructor(props: IPluginsWidgetProps);
+        /**
+         * When the component is mounted, we download the latest plugins
+         */
+        componentWillMount(): void;
+        /**
+         * Gets the currently selected plugins
+         * @returns {IPluginPlus[]}
+         */
+        selectedPlugins: IPluginPlus[];
+        selectPlugin(plugin: IPluginPlus): void;
+        mustShowPluginTick(plugin: any, index: number): boolean;
+        showVersions(plugin: Engine.IPlugin): void;
+        /**
+         * Once the plugins are loaded from the DB
+         * @param {Array<Engine.IPlugin>} plugins
+         * @returns {PluginMap}
+         */
+        onPluginsLoaded(plugins: Array<Engine.IPlugin>): PluginMap;
+        /**
+         * Generates the React code for displaying the plugins
+         */
+        createPluginHierarchy(): JSX.Element[];
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    /**
+     *  Extends the project with a selected attribute
+     */
+    interface IInteractiveProject extends Engine.IProject {
+        selected?: boolean;
+    }
+    interface IProjectListProps extends React.HTMLAttributes {
+        onProjectSelected?: (project: IInteractiveProject) => void;
+        onProjectDClicked?: (project: IInteractiveProject) => void;
+        noProjectMessage?: string;
+    }
+    interface IProjectListState {
+        loading?: boolean;
+        searchText?: string;
+        selectedProject?: IInteractiveProject;
+        errorMsg?: string;
+        projects?: IInteractiveProject[];
+    }
+    /**
+     * A list that displays projects
+     */
+    class ProjectList extends React.Component<IProjectListProps, IProjectListState> {
+        static defaultProps: IProjectListProps;
+        private _user;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: any);
+        /**
+         * Removes a project from the list
+         * @param {IInteractiveProject} p The project to remove
+         */
+        removeProject(p: IInteractiveProject): void;
+        selectProject(project: IInteractiveProject, doubleClick: boolean): void;
+        fetchProjects(index: number, limit: number): Promise<number>;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IOpenProjectProps {
+        onCancel: () => void;
+        onComplete: () => void;
+        project: Engine.IProject;
+    }
+    interface IOpenProjectState {
+        selectedProject?: Engine.IProject;
+        message?: string;
+        mode?: AttentionType;
+        loading?: boolean;
+    }
+    class OpenProject extends React.Component<IOpenProjectProps, IOpenProjectState> {
+        /**
+         * Creates a new instance
+         */
+        constructor(props: IOpenProjectProps);
         /**
         * Attempts to load the project and setup the scene
         */
         loadScene(): void;
-        fetchProjects(index: number, limit: number): void;
-        selectProject(project: Engine.IProject): void;
-        selectPlugin(plugin: Engine.IPlugin): void;
-        showVersions(plugin: Engine.IPlugin): void;
-        isPluginSelected(plugin: any): boolean;
-        reset(): void;
+        componentWillMount(): void;
         /**
-        * Given a form element, we look at if it has an error and based on the expression. If there is we set
-        * the login error message
-        * @param {EngineForm} The form to check.
-        * @param {boolean} True if there is an error
-        */
-        reportError(form: NodeForm): boolean;
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface ILoginFormProps {
+        onLogin: () => void;
+        onLoadingChange?: (loading: boolean) => void;
+        switchMode: () => void;
+    }
+    interface ILoginFormState {
+        loading?: boolean;
+        username?: string;
+        errorMsg?: string;
+        error?: boolean;
+    }
+    class LoginForm extends React.Component<ILoginFormProps, ILoginFormState> {
+        private _user;
         /**
-        * Creates a new user project
-        * @param {EngineForm} The form to check.
-        * @param {boolean} True if there is an error
-        */
-        newProject(name: string, description: string, plugins: Array<Engine.IPlugin>): void;
+         * Creates a new instance
+         */
+        constructor();
+        /**
+         * When the component is mounted we check if the user is logged in
+         */
+        componentWillMount(): void;
         loginError(err: Error): void;
         loginSuccess(data: UsersInterface.IResponse): void;
         /**
+         * Attempts to reset the users password
+         */
+        resetPassword(): void;
+        /**
+         * Attempts to resend the activation code
+         */
+        resendActivation(): void;
+        /**
         * Attempts to log the user in
-        * @param {string} user The username
-        * @param {string} password The user password
-        * @param {boolean} remember Should the user cookie be saved
         */
-        login(user: string, password: string, remember: boolean): void;
+        login(json: any): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IRegisterFormProps {
+        onLogin?: () => void;
+        onLoadingChange?: (loading: boolean) => void;
+        switchMode: () => void;
+    }
+    interface IRegisterFormState {
+        loading?: boolean;
+        errorMsg?: string;
+        error?: boolean;
+    }
+    class RegisterForm extends React.Component<IRegisterFormProps, IRegisterFormState> {
+        private _user;
+        private _captchaId;
+        /**
+         * Creates a new instance
+         */
+        constructor();
         /**
         * Attempts to register a new user
-        * @param {string} user The username of the user.
-        * @param {string} password The password of the user.
-        * @param {string} email The email of the user.
-        * @param {string} captcha The captcha of the login screen
-        * @param {string} captha_challenge The captha_challenge of the login screen
         */
-        register(user: string, password: string, email: string, captcha: string, challenge: string): void;
+        register(json: any): void;
         /**
-        * Attempts to resend the activation code
-        * @param {string} user The username or email of the user to resend the activation
-        */
-        resendActivation(user: string): void;
+         * Called when the captcha div has been mounted and is ready
+         * to be rendered
+         * @param {HTMLDivElement} div The div being rendered
+         */
+        mountCaptcha(div: HTMLDivElement): void;
         /**
-        * Attempts to reset the users password
-        * @param {string} user The username or email of the user to resend the activation
+         * Called when the component is unmounted
+         */
+        componentWillUnmount(): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    enum LoginMode {
+        LOGIN = 0,
+        REGISTER = 1,
+    }
+    interface ILoginWidgetState {
+        mode?: LoginMode;
+        loading?: boolean;
+    }
+    class LoginWidget extends React.Component<{
+        onLogin: () => void;
+    }, ILoginWidgetState> {
+        private _user;
+        /**
+         * Creates a new instance
+         */
+        constructor();
+        switchState(): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    enum SplashMode {
+        WELCOME = 0,
+        LOGIN = 1,
+        NEW_PROJECT = 2,
+        OPENING = 3,
+    }
+    interface ISplashProps {
+        onClose: () => void;
+    }
+    interface ISplashStats {
+        mode?: SplashMode;
+        loading?: boolean;
+        project?: Engine.IProject;
+        theme?: string;
+    }
+    /**
+    * The splash screen when starting the app
+    */
+    class Splash extends React.Component<ISplashProps, ISplashStats> {
+        private static _singleton;
+        /**
+        * Creates an instance of the splash screen
         */
-        resetPassword(user: string): void;
+        constructor(props: ISplashProps);
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+        show(): void;
+        splashDimensions(): string;
+        reset(): void;
         /**
         * Attempts to resend the activation code
         */
         logout(): void;
         /**
-      * Initializes the spash screen
-      * @returns {Splash}
-      */
-        static init(app: Application): Splash;
-        /**
-      * Gets the singleton reference of this class.
-      * @returns {Splash}
-      */
+        * Gets the singleton reference of this class.
+        * @returns {Splash}
+        */
         static get: Splash;
+    }
+}
+declare module Animate {
+    interface INewProjectProps {
+        onCancel: () => void;
+        onProjectCreated: (project: Engine.IProject) => void;
+    }
+    interface INewProjectState {
+        plugins?: IPluginPlus[];
+        errorMsg?: string;
+        error?: boolean;
+        loading?: boolean;
+    }
+    /**
+     * A Component for creating a new project
+     */
+    class NewProject extends React.Component<INewProjectProps, INewProjectState> {
+        private _user;
+        /**
+         * Creates a new instance
+         */
+        constructor(props: any);
+        /**
+         * Creates a new user project
+         * @param {any} json
+         */
+        newProject(json: any): void;
+        /**
+        * Creates the component elements
+        * @returns {JSX.Element}
+        */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IProjectsOverviewProps extends React.HTMLAttributes {
+        onCreateProject: () => void;
+        onOpenProject: (project: Engine.IProject) => void;
+    }
+    interface IProjectsOverviewState {
+        loading?: boolean;
+        selectedProject?: IInteractiveProject;
+        errorMsg?: string;
+    }
+    /**
+     * A component for viewing projects, displaying their stats, removing, adding or opening them.
+     */
+    class ProjectsOverview extends React.Component<IProjectsOverviewProps, IProjectsOverviewState> {
+        private _user;
+        private _list;
+        /**
+         * Creates an instance of the projects overview
+         */
+        constructor(props: IProjectsOverviewProps);
+        removeProject(messageBoxAnswer: string): void;
+        /**
+        * Creates the component elements
+        * @returns {JSX.Element}
+        */
+        render(): JSX.Element;
+    }
+}
+declare module Animate {
+    interface IApplicationState {
+        showSplash?: boolean;
+    }
+    /**
+    * The main GUI component of the application.
+    */
+    class Application extends React.Component<React.HTMLAttributes, IApplicationState> {
+        private static _singleton;
+        static bodyComponent: Component;
+        private _focusObj;
+        private _resizeProxy;
+        private _downProxy;
+        private _dockerlefttop;
+        private _dockerleftbottom;
+        private _dockerrighttop;
+        private _dockerrightbottom;
+        private _canvasContext;
+        private _sceneStore;
+        constructor(props: React.HTMLAttributes);
+        componentDidMount(): void;
+        /**
+         * Creates the component elements
+         * @returns {JSX.Element}
+         */
+        render(): JSX.Element;
+        /**
+        * Deals with the focus changes
+        * @param {object} e The jQuery event object
+        */
+        onMouseDown(e: any): void;
+        /**
+        * Sets a component to be focused.
+        * @param {Component} comp The component to focus on.
+        */
+        setFocus(comp: Component): void;
+        /**
+        *  This is called when a project is unloaded and we need to reset the GUI.
+        */
+        projectReset(): void;
+        /**
+        * Gets the singleton instance
+        */
+        static getInstance(domElement?: string): Application;
+        focusObj: Component;
+        canvasContext: CanvasContext;
+        dockerLeftTop: Docker;
+        dockerLeftBottom: Docker;
+        dockerRightTop: Docker;
+        dockerRightBottom: Docker;
     }
 }
 declare var _cache: string;

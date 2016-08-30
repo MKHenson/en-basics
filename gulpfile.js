@@ -43,13 +43,10 @@ function getDefinition(url, dest, name) {
  */
 gulp.task('install-definitions', function () {
      return Promise.all([
-         getDefinition("https://raw.githubusercontent.com/MKHenson/app-engine/dev/generated-definitions/external-interfaces.d.ts", "lib/definitions/required/", "external-interfaces.d.ts"),
-            getDefinition("https://raw.githubusercontent.com/MKHenson/app-engine/dev/generated-definitions/app-engine.d.ts", "lib/definitions/required/", "app-engine.d.ts"),
-            getDefinition("https://raw.githubusercontent.com/MKHenson/app-engine/dev/generated-definitions/app-engine-client.d.ts", "lib/definitions/required/", "app-engine-client.d.ts"),
-            getDefinition("https://raw.githubusercontent.com/MKHenson/app-engine/dev/generated-definitions/export-token.d.ts", "lib/definitions/required/", "export-token.d.ts"),
-            getDefinition("https://raw.githubusercontent.com/MKHenson/app-engine/dev/generated-definitions/engine-definitions.d.ts", "lib/definitions/required/", "engine-definitions.d.ts"),
-            getDefinition("https://raw.githubusercontent.com/MKHenson/users/dev/dist/definitions/definitions.d.ts", "lib/definitions/required/", "users.d.ts"),
-            getDefinition("https://raw.githubusercontent.com/MKHenson/modepress/dev/server/dist/definitions/modepress-api.d.ts", "lib/definitions/required/", "modepress-api.d.ts")
+         getDefinition("https://raw.githubusercontent.com/PixelSwarm/hatchery-editor/dev/lib/definitions/generated/hatchery-editor.d.ts", "lib/definitions/required/", "hatchery-editor.d.ts"),
+            getDefinition("https://raw.githubusercontent.com/PixelSwarm/hatchery-server/dev/lib/definitions/generated/app-engine.d.ts", "lib/definitions/required/", "hatchery-server.d.ts"),
+            getDefinition("https://raw.githubusercontent.com/Webinate/users/dev/src/definitions/custom/definitions.d.ts", "lib/definitions/required/", "users.d.ts"),
+            getDefinition("https://raw.githubusercontent.com/Webinate/modepress/dev/src/definitions/custom/modepress-api.d.ts", "lib/definitions/required/", "modepress-api.d.ts")
          ]);
 });
 
@@ -67,7 +64,8 @@ gulp.task('ts-code', function() {
             "sourceMap": tsConfig.compilerOptions.sourceMap,
             "preserveConstEnums": tsConfig.compilerOptions.preserveConstEnums,
             "target": tsConfig.compilerOptions.target,
-            "out": tsConfig.compilerOptions.out
+            "out": tsConfig.compilerOptions.out,
+            "jsx": tsConfig.compilerOptions.jsx
             }))
         .pipe(gulp.dest(tsConfig.compilerOptions.outDir));
 });

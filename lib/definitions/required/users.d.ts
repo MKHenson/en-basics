@@ -1,60 +1,76 @@
-declare module UsersInterface
+﻿declare module UsersInterface
 {
     export class User
     {
         dbEntry: IUserEntry;
     }
 
-    export module SocketEvents
+    /*
+    * Describes the different types of event interfaces we can use to interact with the system via web sockets
+    */
+    export module SocketTokens
     {
-        /*
-        * The base interface for all socket events
-        */
-        export interface IEvent
+        export type ClientInstructionType =  (
+            'Login' |
+            'Logout' |
+            'Activated' |
+            'Removed' |
+            'FileUploaded' |
+            'FileRemoved' |
+            'BucketUploaded' |
+            'BucketRemoved' |
+            'MetaRequest'
+        );
+
+        export type ServerInstructionType =  (
+            'MetaRequest'
+        );
+
+        /**
+         * The base interface for all data that is serialized & sent to clients or server.
+         * The type property describes to the reciever what kind of data to expect.
+         */
+        export interface IToken
         {
-            eventType: number;
+            error? : string;
+            type: ClientInstructionType | ServerInstructionType | string;
+        }
+
+        /*
+        * Describes a get/set Meta request, which can fetch or set meta data for a given user
+        * if you provide a property value, then only that specific meta property is edited.
+        * If not provided, then the entire meta data is set.
+        */
+        export interface IMetaToken extends IToken
+        {
+            username?: string;
+            property?: string;
+            val?: any;
         }
 
         /*
         * The socket user event
         */
-        export interface IUserEvent extends IEvent
+        export interface IUserToken extends IToken
         {
-            eventType: number;
             username: string;
         }
 
         /*
         * Interface for file added events
         */
-        export interface IFilesAddedEvent extends IEvent
+        export interface IFileToken extends IToken
         {
             username: string;
-            files: Array<IFileEntry>;
-        }
-
-        /*
-        * Interface for file removed events
-        */
-        export interface IFilesRemovedEvent extends IEvent
-        {
-            files: Array<IFileEntry>;
+            file: IFileEntry;
         }
 
         /*
         * Interface for a bucket being added
         */
-        export interface IBucketAddedEvent extends IEvent
+        export interface IBucketToken extends IToken
         {
             username: string;
-            bucket: IBucketEntry
-        }
-
-        /*
-        * Interface for a bucket being removed
-        */
-        export interface IBucketRemovedEvent extends IEvent
-        {
             bucket: IBucketEntry
         }
     }
@@ -141,20 +157,10 @@ declare module UsersInterface
     */
     export interface ISessionEntry
     {
-        _id: any;
-        sessionId: string;
-        data: any;
-        expiration: number;
-    }
-
-
-    /*
-    * Describes the type of client listening communicating to the web sockets
-    */
-    export interface IWebsocketClient
-    {
-        /*Where is the client origin expected from*/
-        origin: string;
+        _id?: any;
+        sessionId?: string;
+        data?: any;
+        expiration?: number;
     }
 
     /*
@@ -162,6 +168,12 @@ declare module UsersInterface
     */
     export interface IWebsocket
     {
+        /**
+         * A key that must be provided in the headers of socket client connections. If the connection headers
+         * contain 'users-api-key', and it matches this key, then the connection is considered an authorized connection.
+         */
+        socketApiKey: string;
+
         /**
         * The port number to use for web socket communication. You can use this port to send and receive events or messages
         * to the server.
@@ -171,12 +183,64 @@ declare module UsersInterface
 
 
         /**
-        * An array of expected clients
+        * An array of safe origins for socket communication
         * [
-        *   { origin: "webinate.net", eventListeners: [1,4,5,6] }
+        *   "webinate.net",
+        *   "localhost"
         * ]
         */
-        clients: Array<IWebsocketClient>;
+        approvedSocketDomains: Array<string>;
+    }
+
+    export interface IMailer
+    {
+        /**
+         * Attempts to initialize the mailer
+         * @param {IMailOptions} options
+         * @returns {Promise<boolean>}
+         */
+        initialize(options: IMailOptions) : Promise<boolean>
+
+        /**
+         * Sends an email
+         * @param {stirng} to The email address to send the message to
+         * @param {stirng} from The email we're sending from
+         * @param {stirng} subject The message subject
+         * @param {stirng} msg The message to be sent
+         * @returns {Promise<boolean>}
+         */
+        sendMail( to : string, from : string, subject : string, msg : string ): Promise<boolean>
+    }
+
+    export interface IMailOptions { }
+
+    /**
+     * Options for a gmail mailer
+     */
+    export interface IGMail extends IMailOptions
+    {
+        /*
+        * The email account to use the gmail API through. This account must be authorized to
+        * use this application. See: https://admin.google.com/AdminHome?fral=1#SecuritySettings:
+        */
+        apiEmail: string;
+
+        /*
+        * Path to the key file
+        */
+        keyFile: string;
+    }
+
+    /**
+     * Options for a mailgun mailer
+     */
+    export interface IMailgun extends IMailOptions
+    {
+        /** The domain for associated with the mailgun account */
+        domain: string;
+
+        /** The api key for your mailgun account */
+        apiKey: string;
     }
 
     /*
@@ -188,23 +252,6 @@ declare module UsersInterface
         * Path to the key file
         */
         keyFile: string;
-
-        /*
-        * Mail settings
-        */
-        mail: {
-
-            /*
-            * The email account to use the gmail API through. This account must be authorized to
-            * use this application. See: https://admin.google.com/AdminHome?fral=1#SecuritySettings:
-            */
-            apiEmail: string;
-
-            /*
-            * The email to use as the from field when sending mail. This can be different from the apiEmail.
-            */
-            from: string;
-        };
 
         /*
         * Describes the bucket details
@@ -257,7 +304,7 @@ declare module UsersInterface
     export interface IAuthenticationResponse extends IResponse
     {
         authenticated: boolean;
-        user: IUserEntry;
+        user?: IUserEntry;
     }
 
     /*
@@ -333,7 +380,6 @@ declare module UsersInterface
         password: string;
         email: string;
         captcha?: string;
-        challenge?: string;
         meta?: any;
         privileges?: number;
     }
@@ -354,27 +400,29 @@ declare module UsersInterface
     export interface IConfig
     {
         /**
-        * The domain or host of the site.
-        * eg: "127.0.0.1" or "webinate.net"
+        * If true, then the server runs in debug mode. When running tests you should have the application
+        * run in debug mode. You can set this via the config or else use the --debug=true command in the console.
+        * eg: true / false. The default is true.
+        */
+        debugMode: boolean;
+
+        /**
+        * The host to use when listening
+        * eg: "localhost" or "192.168.0.1" or "0.0.0.0"
         */
         host: string;
 
         /**
+        * The domain or host name of the site. This is the external URL to use for connecting to users.
+        * eg: "webinate.net"
+        */
+        hostName: string;
+
+        /**
         * The RESTful path of this service.
-        * eg: If "/api", then the API url would be 127.0.0.1:80/api (or rather host:port/restURL)
+        * eg: If "/api", then the API url would be 127.0.0.1:80/api (or rather host:port/api)
         */
-        restURL: string;
-
-        /**
-        * The RESTful path of the media API
-        * eg: If "/media", then the API url would be 127.0.0.1:80/media (or rather host:port/restURL)
-        */
-        mediaURL: string;
-
-        /**
-        * A secret string to identify authenticated servers
-        */
-        secret: string;
+        apiPrefix: string;
 
         /**
         * The URL to redirect to after the user attempts to activate their account.
@@ -506,6 +554,12 @@ declare module UsersInterface
         sessionLifetime?: number;
 
         /**
+        * The longer period length of user sessions in seconds (Typically when a user clicks a 'remember me' type of button)
+        * e.g (60 * 60 * 24 * 2) = 2 days
+        */
+        sessionLifetimeExtended?: number;
+
+        /**
         * The private key to use for Google captcha
         * Get your key from the captcha admin: https://www.google.com/recaptcha/intro/index.html
         */
@@ -529,6 +583,28 @@ declare module UsersInterface
             }
         */
         adminUser: IAdminUser;
+
+        /**
+         * Settings related to sending emails
+         */
+        mail: {
+
+            /**
+             * The from field sent to recipients
+             */
+            from: string;
+
+            /**
+             * Specify the type of mailer to use.
+             * Currently we support either 'gmail' or 'mailgun'
+             */
+            type: "gmail" | "mailgun";
+
+             /**
+             * Options to be sent to the desired mailer
+             */
+            options: IGMail | IMailgun;
+        }
 
         /**
         * Information relating to the Google storage platform

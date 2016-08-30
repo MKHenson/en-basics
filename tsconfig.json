@@ -8,7 +8,8 @@
     "preserveConstEnums": true,
     "target": "es5",
     "out": "plugin.js",
-    "outDir": "dist"
+    "outDir": "dist",
+    "jsx": "react"
   },
   "files": [
     "./lib/references.d.ts",
